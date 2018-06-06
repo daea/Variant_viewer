@@ -1,0 +1,17 @@
+# Fasta files
+*.fas
+
+# Images
+*.jpg
+*.jpeg
+*.png
+*.tiff
+*.gif
+*.svg
+
+# Tree files
+*.tree
+
+# Temp plotting files
+scripts/variant_plot_files/
+variant-plot.html
