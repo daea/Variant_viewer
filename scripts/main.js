@@ -1,36 +1,112 @@
-// Matthew Cumming - Provart Lab
+//Matthew Cumming - Provart Lab
 // Summer 2018
 // Sample Datasets for testing
 
-alert("main is loaded");
+//alert("main is loaded");
 
-var AGI_URL = "http://bar.utoronto.ca/eplant/cgi-bin/idautocomplete.cgi?species=Arabidopsis_thaliana&term=ABI3";
-var DEFAULT_AGIS = "http://localhost:8000/web-projects/variant-viewer/scripts/data.json";
+var AGI_URL = "http://bar.utoronto.ca/eplant/cgi-bin/idautocomplete.cgi?species=Arabidopsis_thaliana&term=";
 
-var agis;
+var mySource = ["At1G34000.1", "AT2G49720.1", "AT1G45249.1"];
 
+// Document is loaded?
+window.addEventListener("load", function() {
+	
+	// my input field
+	var agi_input = document.getElementById('agiInput');
+	
+	// when a user lifts a key, trigger the hinter() function
+	agi_input.addEventListener("keyup", function(event) {hinter(event)});
+
+	// global XMLHttpRequest (json request) object
+	window.hinterXHR = new XMLHttpRequest();
+});
+
+// the autocomplete part
+function hinter(event) {
+	// this is our input field
+	var input = event.target;
+	// this is the datalist element (options)
+	var huge_list = document.getElementById('huge_list');
+	// minimum number of characters typed into the field
+	var min_characters = 3;
+	// check to see how many characters are typed in the box
+	
+	if (input.value.length < min_characters) {
+		return;
+	} else {
+		// if we are waiting on a request and they type another letter
+		// stop that request, (this is the global object we made above)	
+		window.hinterXHR.abort();
+		
+		// callback function
+		window.hinterXHR.onreadystatechange = function () {
+			// readystate = 0 unsent, 1 = opened, 2 = headers received, 3 = loading
+			// 4 means it's done, status 200 means success
+			if (this.readystate == 4 && this.status == 200) {
+
+				// create a JSON response object
+				var response = JSON.pars( this.responseText );
+				
+				// empty the datalist element of options
+				huge_list.innerHTML = "";
+
+				//iterate over the response object attributes (options)
+				response.forEach(function(item) {
+					// create an option for each attribute
+					var option = document.createElement('option');
+					// item is the attribute, set the option value to item
+					option.value = item;
+					// add a child option to the huge_list element
+					huge_list.appendChild(option);
+				});
+			}
+		};
+		window.hinterXHR.open("GET", AGI_URL + input.value, true);
+		window.hinterXHR.send();
+	}
+}
+
+
+					
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
 $(document).ready(function() {
 	
-	$.get(DEFAULT_AGIS, function (data) {
-		$('.agiSelector').select2({
-			delay: 250,
-			placeholder: "Start typing an AGI",
-			minimumInputLength: 3,
-			data: formatOptions(data),
-			tags: true// default list to show 
-		});
+	var myAGIs = new Bloodhound ({
+		datumTokenizer: Bloodhound.tokenizers.obj.whitespace,
+		queryTokenizer: Bloodhound.tokenizers.whitespace,
+		local: mySource
 	});
-
-	// To get the selected values in the <select>
-	$('#sendAgis').click(function() {
-		var inputted = $('.agiSelector').select2('data');	
-		console.log(inputted);
-		var submission = formatSelected(inputted);
-		console.log(submission);
-	});
-
-
+	console.log(myAGIs);	
 	
+	$('#AGItypeahead').typeahead({
+		hint: true,
+		minLength: 1, 
+		highlight: true
+	},
+	{
+		name: 'mySource',
+		source: myAGIs
+	});
+
+
 });
 
 
@@ -64,17 +140,5 @@ function verifyAgi(agiId) {
 	return result;
 }
 
-/AT[0-9]G[0-9]+[.]?[0-9]?/
-/*
-(function ($) {
-	$.fn.refreshDataSelect2 = function (data) {
-		this.select2('data', data);
-		// Update options
-		var $select = $(this[1]);
-		var options = data.map(function(item) {
-			return '<option value="' + item.id + '">' + item.text + '</option>';
-		});
-        $select.html(options.join('')).change();
-	};
-})(jQuery);
+// Regular expression for AGI's /AT[0-9]G[0-9]+[.]?[0-9]?/
 */

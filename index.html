@@ -1,4 +1,4 @@
-<!DOCTYPE HTML>
+<DOCTYPE HTML>
 <hmtl>	
 <head>
 	<title>Variant Viewer</title>
@@ -8,9 +8,7 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
-	<script src="
 	<script src="scripts/main.js"></script>	
-	<link type="text/css" href="style.css" rel="stylesheet"/>
 </head>
 			
 <body>
@@ -44,10 +42,15 @@
 	<!-- Sidebar -->
 	<div class="container-fluid">
 		<div class="row">
+			<!-- Autocomplete agi submission -->	
 			<div id="inputPanel" class="col-sm-2 col-lg-3" style="padding: 1rem; background-color: #73956f;">
-				<label for="aufillAgi"><h5>Submit up to 10 AGI ids here.<h5></label>
-				<select id="autofillAgi" class="agiSelector form-control" multiple="multiple" style="position: relative; width: 250px"></select>
-				<input id="sendAgis" type="submit" class="btn btn-secondary">	
+				<form>
+					<label for="agiInput"><h5>Submit up to 10 AGI ids here.<h5></label>
+					<input type="text" name="agi" id="agiInput" placeholder="Start typing an AGI" list="huge_list">
+						<datalist id="huge_list">
+						</datalist>
+					<input id="sendAgis" type="submit" class="btn btn-secondary">	
+				</form>
 			</div>
 				<div class="col-lg-9">
 					<!--	<iframe id="serviceFrameSend" src="scripts/variant-plot.html" width="1200" height="800"  frameborder="0">-->	
