@@ -8,44 +8,50 @@
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
-	<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
-	<script  type="text/javascript" src="scripts/typeahead.bundle.js"></script>
+	<script src="
 	<script src="scripts/main.js"></script>	
 	<link type="text/css" href="style.css" rel="stylesheet"/>
 </head>
 			
 <body>
-	<div class="jumbotron text-left-center jumbotron-fluid" style="background-color: lightblue">
-		<h1>BAR Variant Viewer<br><small>nsSNPs from the 1001 Genomes project</small></h1>
-	</div>
-	
-	<div class="row">
-			<div id="inputPanel" class="col-lg-3" style="padding: 2rem">
-				<h4 id="inputPanelTitle" align="left"><strong>Submit your AGIs</strong></h4>
-				<p>Submit up to 10 AGI ids here.</p>
-					<select class="agiSelector" multiple="multiple" style="position: relative; width: 200px">
-					</select>
-					<br><input id="sendAgis" type="submit">	
-				<ul>
-					<li> Instructions for submission </li>
-					<li> Select AGIs from autocomplete dropdown </li>
-					<li> Upload a local .msa </li>
-					<li> Download the data used to create the graph </li>
-				</ul>
-			</div>
-			<div class="col-lg-9">
-				<iframe id="serviceFrameSend" src="scripts/variant-plot.html" width="1200" height="800"  frameborder="0">	
-			</div>
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-lg-12">
-			<ul>
-				<li> Citations </li>
-				<li> Information on the tools used </li>
-				<li> Links to the BAR and to the Provart Lab Website </li>
+
+	<!-- Navigation bar -->
+	<nav class="navbar navbar-expand-md navbar-dark bg-dark">
+		<a class="navbar-brand" href="#">Variant Viewer</a>
+		<div class="collapse navbar-collapse" id="navbarsExampleDefault">
+			<ul class="navbar-nav mr-auto">
+				<li class="nav-item active">
+					<a class="nav-link" href="#">New Submission<span class="sr-only">(current)</span></a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="#">BAR</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="#">ePlant</a>
+				</li>
+				<li class="nav-item dropdown">
+					<a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Other Sites</a>
+					<div class="dropdown-menu" aria-labelledby="dropdown01">
+						<a class="dropdown-item" href="#">PolyMorph 1001</a>
+						<a class="dropdown-item" href="#">Provart Lab</a>
+						<a class="dropdown-item" href="#">UofT CSB</a>
+					</div>
+				</li>
 			</ul>
+		</div>
+	</nav>
+
+	<!-- Sidebar -->
+	<div class="container-fluid">
+		<div class="row">
+			<div id="inputPanel" class="col-sm-2 col-lg-3" style="padding: 1rem; background-color: #73956f;">
+				<label for="aufillAgi"><h5>Submit up to 10 AGI ids here.<h5></label>
+				<select id="autofillAgi" class="agiSelector form-control" multiple="multiple" style="position: relative; width: 250px"></select>
+				<input id="sendAgis" type="submit" class="btn btn-secondary">	
+			</div>
+				<div class="col-lg-9">
+					<!--	<iframe id="serviceFrameSend" src="scripts/variant-plot.html" width="1200" height="800"  frameborder="0">-->	
+				</div>
 		</div>
 	</div>
 </body>	
