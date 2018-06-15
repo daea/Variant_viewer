@@ -1,38 +1,42 @@
-<DOCTYPE HTML>
-<hmtl>	
+<!-- Variant Viewer  -->
+<!-- Matthew Cumming -->
+<!-- Provart Lab     -->
+
+
+<!DOCTYPE HTML>
+<html>	
 <head>
 	<title>Variant Viewer</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css">
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
-	<script src="scripts/main.js"></script>	
+	<link rel="stylesheet" href="style.css">
 </head>
 			
-<body>
-
+<body id="bootstrap-overrides">
 	<!-- Navigation bar -->
 	<nav class="navbar navbar-expand-md navbar-dark bg-dark">
-		<a class="navbar-brand" href="#">Variant Viewer</a>
+		<a class="navbar-brand" href="">Variant Viewer</a>
 		<div class="collapse navbar-collapse" id="navbarsExampleDefault">
 			<ul class="navbar-nav mr-auto">
 				<li class="nav-item active">
-					<a class="nav-link" href="#">New Submission<span class="sr-only">(current)</span></a>
+					<a class="nav-link" href="http://bar.utoronto.ca/~mcumming/Variant_viewer/">New Submission<span class="sr-only">(current)</span></a>
 				</li>
 				<li class="nav-item">
-					<a class="nav-link" href="#">BAR</a>
+					<a class="nav-link" href="http://bar.utoronto.ca/">BAR</a>
 				</li>
 				<li class="nav-item">
-					<a class="nav-link" href="#">ePlant</a>
+					<a class="nav-link" href="http://bar.utoronto.ca/eplant/">ePlant</a>
+				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="https://www.arabidopsis.org/">TAIR</a>
 				</li>
 				<li class="nav-item dropdown">
 					<a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Other Sites</a>
 					<div class="dropdown-menu" aria-labelledby="dropdown01">
-						<a class="dropdown-item" href="#">PolyMorph 1001</a>
-						<a class="dropdown-item" href="#">Provart Lab</a>
-						<a class="dropdown-item" href="#">UofT CSB</a>
+						<a class="dropdown-item" href="http://tools.1001genomes.org/polymorph/">PolyMorph 1001</a>
+						<a class="dropdown-item" href="http://labs.csb.utoronto.ca/provart/">Provart Lab</a>
+						<a class="dropdown-item" href="https://csb.utoronto.ca/">UofT CSB</a>
 					</div>
 				</li>
 			</ul>
@@ -43,19 +47,33 @@
 	<div class="container-fluid">
 		<div class="row">
 			<!-- Autocomplete agi submission -->	
-			<div id="inputPanel" class="col-sm-2 col-lg-3" style="padding: 1rem; background-color: #73956f;">
-				<form>
-					<label for="agiInput"><h5>Submit up to 10 AGI ids here.<h5></label>
-					<input type="text" name="agi" id="agiInput" placeholder="Start typing an AGI" list="huge_list">
+			<div id="inputPanel" class="col-lg-3" style="padding: 1rem; background-color: #73956f;">
+				<!-- AGI input fields -->
+				<div class="form-group" style="margin-bottom: 0rem;">
+					<label for="agiInput"><h4>Enter a gene <small>(e.g. AT3G24650)</small><h5></label>
+					
+					<input type="text" name="agi" class="form-control" id="agiInput" aria-describedBy="agiHelp" placeholder="Start typing an AGI" list="huge_list" autocomplete="off" autocorrect="off" style="padding: 5px; height: 50px; border-radius: 5px;">
+					<small id="agiHelp" class="form-text" style="margin-bottom: 10px">Type 5 characters to see a list of available genes.</small>
 						<datalist id="huge_list">
 						</datalist>
-					<input id="sendAgis" type="submit" class="btn btn-secondary">	
-				</form>
+					<input id="addAgi" type="submit" class="btn btn-secondary" value="Add gene">	
+				</div>
+				<hr style="margin-top: 0rem;">	
+				<label for="addedGenes"><h4> Active genes </h5></label>
+				<ul id="addedGenes" class="list-group" style="margin-bottom: 5px">
+					<li class="list-group-item">You have not added any genes</li>
+				</ul>
+
 			</div>
 				<div class="col-lg-9">
 					<!--	<iframe id="serviceFrameSend" src="scripts/variant-plot.html" width="1200" height="800"  frameborder="0">-->	
 				</div>
 		</div>
 	</div>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
+	<script src="scripts/main.js"></script>	
+	
 </body>	
 </html>
