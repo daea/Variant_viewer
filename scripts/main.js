@@ -9,19 +9,18 @@ var queryAgis = [];
 // Document is loaded?
 window.addEventListener("load", function() {
 	
+	// global hint object for autocomplete dropdown
+	window.hinterXHR = new XMLHttpRequest();
+	window.graphXHR = new XMLHttpRequest();
 	// my input field
 	var agi_input = document.getElementById('agiInput');
-	
-	// when a user lifts a key, trigger the hinter() function
 	agi_input.addEventListener("keyup", function(event) {hinter(event)});
 
-	// when a user clicks addGenes trigger the addGene function
+	// add genes to queryAgis
 	var add_gene = document.getElementById('addAgi');
 	add_gene.addEventListener('click', function(event) {addGene(agi_input)});
 
-	// global XMLHttpRequest (json request) object
-	window.hinterXHR = new XMLHttpRequest();
-
+	// remove genes from queryAgis
 	var activeGenes = document.getElementById('addedGenes');
 	activeGenes.addEventListener("click", (event) => {
 		if (event.target.nodeName == 'A') {	
@@ -32,9 +31,19 @@ window.addEventListener("load", function() {
 			};
 		} else {
 			console.log("Not finding the element");
-		}
+		};	
 	});
 	
+	var input_panel = document.getElementById("inputPanel");
+	input_panel.addEventListener("click", (event) => {
+		if (event.target.nodeName == 'BUTTON' && event.target.id == 'sendAgis') {
+			submitAgis(queryAgis);	
+		} else {
+				console.log("Can't find the submit button");
+		};
+	});
+
+
 });
 
 // the autocomplete part
@@ -44,7 +53,7 @@ function hinter(event) {
 	// this is the datalist element (options)
 	var huge_list = document.getElementById('huge_list');
 	// minimum number of characters typed into the field
-	var min_characters = 5;
+	var min_characters = 2;
 	// check to see how many characters are typed in the box
 
 	if (input.value.length < min_characters) {
@@ -81,7 +90,7 @@ function hinter(event) {
 		window.hinterXHR.open("GET", AGI_URL + input.value, true);
 
 		window.hinterXHR.send();
-	}
+	};
 }
 
 
@@ -105,25 +114,41 @@ function validateForm() {
 
 function addGene(input) {
 	var addedGenes = document.getElementById('addedGenes');	
-	if (queryAgis.length == 0) {
+	console.log(input.value.length);	
+	if ( queryAgis.length >= 10) {
+	
+		alert("You have entered the maximum number of genes.");
+	
+	} else if ( queryAgis.includes(input.value) == true) {
+	
+		alert("That gene is already included in the list.");
+	
+	} else if ( input.value.length == 0) {
+	
+		alert("Please enter a gene in the search box.");
+	
+	} else if ( queryAgis.length == 0 && input.value.length != 0) {
+	
 		addedGenes.innerHTML = '';	
 		createListElement(input);
 		queryAgis.push(input.value);
 		addSubmitButton();
-	} else if (queryAgis.length == 10) {
-		alert("You have entered the maximum number of genes.");
-	} else if (queryAgis.includes(input.value) == true) {
-		alert("That gene is already included in the list.");
-	} else	{
+	
+	} else if ( queryAgis.length < 10 && input.value.length != 0) {
+	
 		createListElement(input);		
 		queryAgis.push(input.value);
-	}
-	console.log(queryAgis);	
+	} else {
+		alert("The gene could not be successfully added to the list.");
+	};
+	
+
+	console.log(queryAgis);
 }
 
 
 function createListElement(input) {
-	var Agi = document.createElement('li');
+	var Agi = document.createElement("li");
 	Agi.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
 	//Agi.classList.add("list-group-item-dark");
 	// add text to the list itm
@@ -133,11 +158,43 @@ function createListElement(input) {
 	addedGenes.appendChild(Agi);
 }
 
+
+
 function addSubmitButton() {
-	var input_panel = document.getElementById('inputPanel');
-	var submitAgis = document.createElement('button');
-	submitAgis.type = 'submit';
-	submitAgis.classList.add("btn", "btn-secondary");
-	submitAgis.innerHTML = 'Submit';
-	input_panel.appendChild(submitAgis);
+	var exists = document.getElementById('sendAgis');
+	if (typeof(exists) == "object" && exists == null) {
+		var input_panel = document.getElementById("inputPanel");
+		var submitAgis = document.createElement("button");
+		submitAgis.id = "sendAgis";
+		submitAgis.type = "submit";
+		submitAgis.classList.add("btn", "btn-secondary");
+		submitAgis.innerHTML = "Submit";
+		input_panel.appendChild(submitAgis);
+	};
 }
+
+function submitAgis(Agis) {
+	var listedAgis = [];
+	for (var i=0; i < Agis.length; i++) {
+		listedAgis.push(extractId(Agis[i]));
+	};
+	window.graphXHR.abort();
+	window.graphXHR.onreadystatechange = function () {
+		if (this.readyState == 4 && this.status == 200) {
+			// do stuff with our php response
+			console.log("The POST request worked.");
+		}; 
+	};
+	window.graphXHR.open("POST", PHP_URL, true);
+	window.graphXHR
+}
+
+function extractId(value) {
+	var re = /^AT[0-9]G[0-9]+[.]?[0-9]?/i;	
+	var match = re.exec(value);
+	return(match[0]);
+}
+
+// Gene Structure Drawing in 
+// Eplant.views.GeneInfoView.js
+// Lines 99 - 483
