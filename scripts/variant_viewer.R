@@ -20,6 +20,7 @@ gids = parseCommandLineAgis()
 
 # Run the following two lines to use in RStudio
 #args = "AT4G34000.1, AT1G45249.1,AT1G49720.1,AT3G19290.1"
+#args = "AT4G34000.1"
 #gids = unlist(str_extract_all(args, 'AT[0-9]G[0-9]+[.]?[0-9]?'))
 
 #### Get our variants from the Polymorph1001 API ####
@@ -141,22 +142,20 @@ if (!is.null(tree)) {
 } else if (is.null(tree)) {
 	
 	ids <- nsSNPs %>% group_by(gene_name, submission_id) %>% summarize()
-	names(ids) <- c("name", "submission_id")
-	ids <- ids %>% 
+	names(ids) <- c("name", "agi")
+	gene_names <- ids %>% 
 		group_by(name) %>%
 		mutate( gene_name = ifelse(is.na(name), 
-								   yes = as.character(submission_id), 
+								   yes = as.character(agi), 
 								   no = as.character(name)))
 	
 	cdd_pfam <- left_join(cdd_pfam, gene_names, by = c("agi" = "agi"))
 	cdd_pfam$agi <- as.factor(cdd_pfam$agi)
+	cdd_pfam$y = 1;
 	
 	# In the order they are in the ids table or else they will plot in the wrong order
-	levels(cdd_pfam$gene_name) <- ids$gene_name
+	levels(cdd_pfam$gene_name) <- as.factor(ids$name)
 }
-
-
-
 
 ####################### Working With Plotly ###########################
 #### Whisker plot ####
@@ -233,7 +232,7 @@ p3 <- ggplot(cdd_pfam, aes(y = y, x = end_pos, fill = domain, alpha = 0.5)) +
 				  xmax = end_pos - 0.5)) + 
 	scale_y_continuous(
 		breaks = seq(1:length(levels(cdd_pfam$gene_name))),
-		labels = levels(cdd_pfam$gene_name)) + 
+		labels = as.character(levels(cdd_pfam$gene_name))) + 
 	theme(legend.title = element_blank(),
 		  axis.title.y = element_blank())
 
@@ -251,38 +250,34 @@ right_plot <- subplot(p1, p3, p2,
 		nrows = 3, 
 		shareX = TRUE,
 		heights = c(0.5,0.3,0.1),
-		margin = 0.02,
 		titleY = TRUE
-) %>% layout(margin = list(l=150,t=150,r=150),
-			 title = "<br><br><i>A.thaliana</i> nsSNP viewer",
-			 titlefont = list(size = 16)
-			 )
+) 
+
 htmlwidgets::saveWidget(right_plot, "variant_plot.html")
 
 ######################################
-
 #plotting the msa underneath
 
-p3 <- ggplot(cdd_pfam, aes(y = y, x = end_pos, fill = domain, alpha = 0.5)) +
-	geom_rect(aes(y = y, x = end_pos,
-				  ymin = y - 0.45, 
-				  ymax = y + 0.45,
-				  xmin = start_pos - 0.5,
-				  xmax = end_pos - 0.5)) + 
-	scale_y_continuous(
-		breaks = seq(1:length(levels(cdd_pfam$gene_name))),
-		labels = levels(cdd_pfam$gene_name)) + 
-	theme(legend.title = element_blank(),
-		  axis.title.y = element_blank()) +
-	geom_text(aes(y = variantMap$key, x = variantMap$position, label = variantMap$value))
-
-p3 <- ggplotly(p3) %>%
-	layout(yaxis = list(
-		tickfont = list(
-			size = 10,
-			font = "sans-serif"),
-		titlefont = list(
-			size = 12,
-			font = "sans-serif"),
-		title = "bits")
-	)
+#p3 <- ggplot(cdd_pfam, aes(y = y, x = end_pos, fill = domain, alpha = 0.5)) +
+#	geom_rect(aes(y = y, x = end_pos,
+#				  ymin = y - 0.45, 
+#				  ymax = y + 0.45,
+#				  xmin = start_pos - 0.5,
+#				  xmax = end_pos - 0.5)) + 
+#	scale_y_continuous(
+#		breaks = seq(1:length(levels(cdd_pfam$gene_name))),
+# 		labels = levels(cdd_pfam$gene_name)) + 
+# 	theme(legend.title = element_blank(),
+# 		  axis.title.y = element_blank()) +
+# 	geom_text(aes(y = variantMap$key, x = variantMap$position, label = variantMap$value))
+# 
+# p3 <- ggplotly(p3) %>%
+# 	layout(yaxis = list(
+# 		tickfont = list(
+# 			size = 10,
+# 			font = "sans-serif"),
+# 		titlefont = list(
+# 			size = 12,
+# 			font = "sans-serif"),
+# 		title = "bits")
+# 	)
