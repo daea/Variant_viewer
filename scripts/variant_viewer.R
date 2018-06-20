@@ -19,9 +19,9 @@ source("helper_functions.R")
 	gids = parseCommandLineAgis() 
 
 	# Run the following two lines to use in RStudio
-	args = "AT4G34000.1, AT1G45249.1,AT1G49720.1,AT3G19290.1"
+	#args = "AT4G34000.1,AT1G45249.1,AT1G49720.1,AT3G19290.1"
 	#args = "AT4G34000.1"
-	gids = unlist(str_extract_all(args, 'AT[0-9]G[0-9]+[.]?[0-9]?'))
+	#gids = unlist(str_extract_all(args, 'AT[0-9]G[0-9]+[.]?[0-9]?'))
 
 	#### Get our variants from the Polymorph1001 API ####
 	variants = getVariants(gids)

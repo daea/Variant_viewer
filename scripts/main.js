@@ -4,9 +4,10 @@
 
 
 var AGI_URL = "http://bar.utoronto.ca/eplant/cgi-bin/idautocomplete.cgi?species=Arabidopsis_thaliana&term=";
+var PHP_URL = "scripts/plotVariants.php?locus=";
 var queryAgis = [];
 
-// Document is loaded?
+
 window.addEventListener("load", function() {
 	
 	// global hint object for autocomplete dropdown
@@ -46,61 +47,37 @@ window.addEventListener("load", function() {
 
 });
 
-// the autocomplete part
-function hinter(event) {
-	// this is our input field
-	var input = event.target;
-	// this is the datalist element (options)
-	var huge_list = document.getElementById('huge_list');
-	// minimum number of characters typed into the field
-	var min_characters = 2;
-	// check to see how many characters are typed in the box
 
+function hinter(event) {
+	var input = event.target;
+	var huge_list = document.getElementById('huge_list');
+	var min_characters = 2;
 	if (input.value.length < min_characters) {
 		return;
 	} else {
-		// if we are waiting on a request and they type another letter
-		// stop that request, (this is the global object we made above)	
 		window.hinterXHR.abort();
 		
-		// callback function
 		window.hinterXHR.onreadystatechange = function () {
-			// readystate = 0 unsent, 1 = opened, 2 = headers received, 3 = loading
-			// 4 means it's done, status 200 means success
 			if (this.readyState == 4 && this.status == 200) {
 
-				// create a JSON response object
 				var response = JSON.parse( this.responseText );
-
-				// empty the datalist element of options
 				huge_list.innerHTML = "";
-
-				//iterate over the response object attributes (options)
 				response.forEach(function(item) {
-					// create an option for each attribute
 					var option = document.createElement('option');
-					// item is the attribute, set the option value to item
 					option.value = item;
-					// add a child option to the huge_list element
 					huge_list.appendChild(option);
 				});
 			}
 		};
-
 		window.hinterXHR.open("GET", AGI_URL + input.value, true);
-
 		window.hinterXHR.send();
 	};
 }
 
 
 function validateForm() {
-	// Get the input element
 	var input = document.getElementById('agiInput');
-	// Get the datalist
 	var huge_list = document.getElementById('huge_list');
-
-	// If we find the input inside out list, we submit the form
 	for (var element of huge_list.children) {
 		if (element.value == input.value) {		
 			return true;
@@ -141,8 +118,6 @@ function addGene(input) {
 	} else {
 		alert("The gene could not be successfully added to the list.");
 	};
-	
-
 	console.log(queryAgis);
 }
 
@@ -159,7 +134,6 @@ function createListElement(input) {
 }
 
 
-
 function addSubmitButton() {
 	var exists = document.getElementById('sendAgis');
 	if (typeof(exists) == "object" && exists == null) {
@@ -173,26 +147,35 @@ function addSubmitButton() {
 	};
 }
 
+
 function submitAgis(Agis) {
 	var listedAgis = [];
 	for (var i=0; i < Agis.length; i++) {
 		listedAgis.push(extractId(Agis[i]));
 	};
 	window.graphXHR.abort();
+
 	window.graphXHR.onreadystatechange = function () {
 		if (this.readyState == 4 && this.status == 200) {
-			// do stuff with our php response
-			console.log("The POST request worked.");
+			console.log("The GET request worked.");
+			pasteGraph(this);
 		}; 
 	};
-	window.graphXHR.open("POST", PHP_URL, true);
-	window.graphXHR
+	console.log(PHP_URL +listedAgis.join(','));
+	window.graphXHR.open("GET", PHP_URL + listedAgis.join(','), true);
+	window.graphXHR.send();
 }
+
 
 function extractId(value) {
 	var re = /^AT[0-9]G[0-9]+[.]?[0-9]?/i;	
 	var match = re.exec(value);
 	return(match[0]);
+}
+
+ 
+function pasteGraph(response) {
+	document.getElementById('graphPanel').innerHTML = response.responseText;
 }
 
 // Gene Structure Drawing in 
