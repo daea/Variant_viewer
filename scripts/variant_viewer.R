@@ -19,9 +19,9 @@ source("helper_functions.R")
 	gids = parseCommandLineAgis() 
 
 	# Run the following two lines to use in RStudio
-	#args = "AT4G34000.1, AT1G45249.1,AT1G49720.1,AT3G19290.1"
+	args = "AT4G34000.1, AT1G45249.1,AT1G49720.1,AT3G19290.1"
 	#args = "AT4G34000.1"
-	#gids = unlist(str_extract_all(args, 'AT[0-9]G[0-9]+[.]?[0-9]?'))
+	gids = unlist(str_extract_all(args, 'AT[0-9]G[0-9]+[.]?[0-9]?'))
 
 	#### Get our variants from the Polymorph1001 API ####
 	variants = getVariants(gids)
@@ -109,57 +109,26 @@ source("helper_functions.R")
 		mutate(domain = cdd_domain) %>%
 		mutate(start_pos = position, end_pos = position + 1) %>%
 		select(-c(position))
+	
 	cdd_pfam <- full_join(pfam_mapped, cdd_mapped) %>% 
 		select(-c(pfam_domain, cdd_domain))
 
-	if (length(raw_seqs) > 1) {
-		phylogeny <- ggtree(tree)
-		print(file.exists('temp.fas.tree'))
-		print(read.tree("temp.fas.tree"))	
-		# Pull the labels from the tree, so we can plot them in the right order
-		
-		print(phylogeny$data)
-		
-		ids = data.frame(label = subset(phylogeny$data, isTip == TRUE)["label"],
-						 y =  subset(phylogeny$data, isTip == TRUE)["y"])		
-		
-		
-		# Convert tip labels to AGI
-		ids <- ids %>% 
-			group_by(label) %>%
-			mutate(agi = paste(str_split(label, pattern = "_")[[1]][2:3], collapse = ".")) %>%
-			arrange(y) 
-		
-		# Collect gene names from variant table
-		gene_names <- nsSNPs %>% group_by(gene_name, submission_id) %>% summarize()
-		
-		# If the gene name is null, plot the agi instead
-		ids = left_join(ids, gene_names, by = c("agi" = "submission_id"))
-		ids = mutate(ids, gene_name = ifelse(is.na(gene_name), 
-											 yes = as.character(agi), 
-											 no = as.character(gene_name)))
-		cdd_pfam <- left_join(cdd_pfam, ids, by = c("agi" = "agi"))
-		
-		# In the order they are in the ids table or else they will plot in the wrong order
-		levels(cdd_pfam$gene_name) <- ids$gene_name
-		
-	} else if (length(raw_seqs) == 1 | length(raw_seqs) < 1) {
-		
 		ids <- nsSNPs %>% group_by(gene_name, submission_id) %>% summarize()
 		names(ids) <- c("name", "agi")
+		ids$y <- seq(1:length(ids$name))
+		
 		gene_names <- ids %>% 
 			group_by(name) %>%
 			mutate( gene_name = ifelse(is.na(name), 
 									   yes = as.character(agi), 
 									   no = as.character(name)))
 		
+		
 		cdd_pfam <- left_join(cdd_pfam, gene_names, by = c("agi" = "agi"))
 		cdd_pfam$agi <- as.factor(cdd_pfam$agi)
-		cdd_pfam$y = 1;
 		
-		# In the order they are in the ids table or else they will plot in the wrong order
+		
 		levels(cdd_pfam$gene_name) <- as.factor(ids$name)
-	}
 
 	####################### Working With Plotly ###########################
 	#### Whisker plot ####
