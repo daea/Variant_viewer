@@ -1,5 +1,4 @@
 #### Functions to clean up the GET requests ####
-
 # Just for Pulling the response codes and naming the items in the list
 
 parseCommandLineAgis <- function() {
@@ -89,7 +88,11 @@ formatVariants <- function(variants) {
 					 "transcript_id",
 					 "exon_rank"
 	)
-	return(data)
+	if (nrow(data) > 0) {
+	  return(data)
+	} else if (nrow(data) == 0) {
+	  return(FALSE)
+	}
 }
 
 
@@ -106,7 +109,6 @@ getProteinSeqs <- function(gids) {
 getPfamDomains <- function(raw_seqs) {
 	pfamurl = "http://bar.utoronto.ca/eplant/cgi-bin/PfamAnnot.cgi"
 	prot_fam = lapply(raw_seqs, function(x) fromJSON(xml_text(content(POST(pfamurl, body = list(FASTAseq = x)))), simplifyMatrix = TRUE))
-	
 	prot_data = data.frame(matrix(ncol = 4, nrow = 0)) # Initialize an empty data frame
 	for (agi in names(prot_fam)) { 
 		for (domain in names(prot_fam[[agi]])) {
@@ -117,7 +119,12 @@ getPfamDomains <- function(raw_seqs) {
 	}
 	colnames(prot_data) <- c("agi", "pfam_domain", "value_type", "value")
 	pfam_domains <- prot_data %>% spread(value_type, value)
-	return(pfam_domains)
+	
+	if (nrow(pfam_domains) > 0) {
+  	return(pfam_domains)
+	} else if (nrow(pfam_domains) == 0) {
+	  return(FALSE)
+	}
 }
 
 
@@ -130,8 +137,42 @@ getCddDomains <- function(raw_seqs) {
 			cdd_data <- rbind(cdd_data, rbind(c(agi, domain, cdd_res[[agi]][[domain]])))
 		}
 	}
-	colnames(cdd_data) <- c("agi", "cdd_domain", "residues")
-	cdd_residues <- cdd_data %>% separate_rows(residues) %>% extract(residues, into = c("residue", "location"), regex = "([A-Za-z])([0-9]+)")
-	cdd_residues$location <- as.numeric(cdd_residues$location)
-	return(cdd_residues)
+	if (nrow(cdd_data) > 0) {
+  	colnames(cdd_data) <- c("agi", "cdd_domain", "residues")
+  	cdd_residues <- cdd_data %>% separate_rows(residues) %>% extract(residues, into = c("residue", "location"), regex = "([A-Za-z])([0-9]+)")
+  	cdd_residues$location <- as.numeric(cdd_residues$location)
+  	return(cdd_residues)
+	} else if (nrow(cdd_data) == 0) {
+	  stop("The given AGI does not appear to contain any missense variants")
+	}
 }
+
+
+ 
+# failTest <- raw_seqs
+# raw_seqsTester <- raw_seqs
+# raw_seqsTester_failTest <-raw_seqs
+# pfamFailTest <- raw_seqs
+# 
+# failTest # AT1G01010.1 no CDD domains
+# raw_seqsTester # 4 ABFs, always works
+# raw_seqsTester_failTest # 3 AFBs and AT1G01010.1
+# pfamFailTest
+# 
+# 
+# getCddDomains(failTest)
+# getCddDomains(raw_seqsTester)
+# getCddDomains(raw_seqsTester_failTest)
+# getCddDomains(pfamFailTest)
+# 
+# getPfamDomains(failTest)
+# getPfamDomains(raw_seqsTester)
+# getPfamDomains(raw_seqsTester_failTest)
+# getPfamDomains(pfamFailTest)
+# 
+# test_seq = "ASDFGHKLKANSGKANDGKLSDNGSKLDFNGKADNFKASNDKALSDNKASFNAKDGNGKADNGKANSDKFNAK
+# SDNASKFNAKGNKANSDFLKASNDL"
+# names(test_seq) = "the"
+# getPfamDomains(test_seq)
+# 
+# test_seq
