@@ -1,15 +1,5 @@
-##################################################################
-# This File is Old and contains my ggplot2 method of plotting
-# I saved the script for cleaning and doing an MSA in cleanData.R
-# Refer to that file from now on
-##################################################################
-
-
-
-
 #### 2018 Matt Cumming - Provart Lab 2018  ####
 #### SNP Analyses ####
-suppressMessages({
 library(dplyr)
 library(stringr)
 library("httr")
@@ -17,15 +7,12 @@ library(xml2)
 library(jsonlite)
 library("Biostrings")
 library("tidyr")
-library(ggseqlogo)
-library(ggplot2)
-library(plotly)
-library(ggtree)
-source("helper_functions.R")
-})
 
-suppressMessages({
-suppressWarnings({
+# Can't load bioconductor packages when script is run by apache
+# Load from my personal packages (should setup all dependencies to eventually do this)
+library("DECIPHER", lib="/home/mcumming/R/x86_64-pc-linux-gnu-library/3.3")
+source("helper_functions.R")
+
 	#### Command line AGI ids ####
 	gids = parseCommandLineAgis() 
 
@@ -52,19 +39,17 @@ suppressWarnings({
 			)
 	nsSNPs$gene_name <- as.factor(nsSNPs$gene_name)
 	nsSNPs$submission_id <- as.factor(nsSNPs$submission_id)
-
 	#### Alignment ####
 	raw_seqs = getProteinSeqs(success)
 	if (length(raw_seqs) == 1) {
 		aligned_seqs = AAStringSet(raw_seqs) # Don't align one sequence
-		tree = NULL
+#		tree = NULL
 	} else {
-		writeXStringSet(AAStringSet(raw_seqs), format = "fasta", filepath = "temp.fas" )
-		system("mafft --treeout temp.fas > out.fas")
-		aligned_seqs = readAAStringSet("out.fas")
-		tree = read.tree("temp.fas.tree")
+		#writeXStringSet(AAStringSet(raw_seqs), format = "fasta", filepath = "temp.fas", append = FALSE )
+		#system("mafft --quiet --treeout temp.fas > out.fas")		
+		#aligned_seqs = readAAStringSet("out.fas")
+		aligned_seqs = AlignSeqs(AAStringSet(raw_seqs), verbose = FALSE)
 	}
-
 	#### Mapping Variants ####
 
 	alignmentMatrix = data.frame(t(as.matrix(aligned_seqs))) # Alignment to matrix
@@ -141,104 +126,4 @@ suppressWarnings({
 		
 		levels(cdd_pfam$gene_name) <- as.factor(ids$name)
 
-	####################### Working With Plotly ###########################
-	#### Whisker plot ####
-
-	p1 <- plot_ly(frequency_data, x= ~position, y = ~av_freq, 
-				  type = "bar", 
-				  name = "frequency",
-				  text = paste(
-					paste("Position: ", frequency_data$position),
-					paste("Mean Frequency: ", round(frequency_data$av_freq, 5)),
-					paste("Number of nsSNPs: ", frequency_data$intraCount),
-					paste("Number of proteins: ", frequency_data$interCount),
-					sep = "<br>"),
-				  hoverinfo = 'text'
-				  
-	) %>% 
-		layout(showlegend = FALSE,
-			   yaxis = list(
-				title = "frequency",
-				titlefont = list(
-					font = "sans-serif",
-					size = 12
-				),
-				tickfont = list(
-					size = 10,
-					font = "sans-serif"
-				)),
-			   xaxis = list(
-				title = "Position in Multiple Sequence Alignment")
-		) %>%
-		add_trace(variantMap, x =~variantMap$position, y = ~variantMap$freq,
-				  name = "nsSNPs",
-				  type = "scatter",
-				  mode = "markers",
-				  marker = list(size = 5),
-				  text = paste(
-					paste("Gene Name:",variantMap$gene_name),
-					paste("Reference: ", variantMap$original),
-					paste("missense Variant: ", variantMap$variant),
-					paste("Frequency: ", round(variantMap$freq, 5)),
-					paste("Position:", variantMap$map),
-					paste("# Accessions: ", variantMap$n),
-					sep = "<br>"
-				  ),
-				  
-				  hoverinfo = 'text'
-		) 
-	logo = as.character(aligned_seqs)
-	p2 = ggseqlogo(logo) + theme(
-								 panel.grid.major = element_blank(), 
-								 panel.grid.minor = element_blank(),
-								 panel.background = element_rect(fill = "grey97")
-								 ) +
-		theme(legend.title = element_blank(),
-			  axis.text.x = element_blank(),
-			  axis.text.y = element_text(size=10))
-	p2 = ggplotly(p2) %>% 
-		layout(yaxis = list(
-				tickfont = list(
-					size = 10,
-					font = "sans-serif"),
-				titlefont = list(
-					size = 12,
-					font = "sans-serif"),
-				title = "bits")
-		)
-
-	p3 <- ggplot(cdd_pfam, aes(y = y, x = end_pos, fill = domain, alpha = 0.5)) +
-		geom_rect(aes(y = y, x = end_pos,
-					  ymin = y - 0.45, 
-					  ymax = y + 0.45,
-					  xmin = start_pos - 0.5,
-					  xmax = end_pos - 0.5)) + 
-		scale_y_continuous(
-			breaks = seq(1:length(levels(cdd_pfam$gene_name))),
-			labels = as.character(levels(cdd_pfam$gene_name))) + 
-		theme(legend.title = element_blank(),
-			  axis.title.y = element_blank())
-
-	p3 <- ggplotly(p3) %>%
-		layout(yaxis = list(
-				tickfont = list(
-					size = 10,
-					font = "sans-serif"),
-				titlefont = list(
-					size = 12,
-					font = "sans-serif"))
-			)
-		
-	right_plot <- subplot(p1, p3, p2, 
-			nrows = 3, 
-			shareX = TRUE,
-			heights = c(0.5,0.3,0.1),
-			titleY = TRUE
-	) 
-})
-})
-
-
-htmlwidgets::saveWidget(right_plot, "variant_plot.html")
-
-
+toJSON(list(data=list(c(cdd_pfam), c(variantMap), c(frequency_data))), pretty = TRUE, na = 'null')

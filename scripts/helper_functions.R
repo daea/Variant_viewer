@@ -13,8 +13,8 @@ parseCommandLineAgis <- function() {
 	} else if (length(gids) >= 11) {
 		stop("Please submit 10 or fewer AGI id's")
 	} else {
-		print(paste(length(gids), " genes submitted", sep = ""))
-		print(gids)
+		#print(paste(length(gids), " genes submitted", sep = ""))
+		#print(gids)
 		return(gids)
 	}
 }
@@ -25,11 +25,11 @@ getStatus <- function(responses, submission_ids) {
 	names(response_codes) = unlist(lapply(responses, function(x) x$name))
 	for (name in names(response_codes)) {
 		if (response_codes[name] != 200) {
-			print(paste("The server could not return results for:", name, "."))
+			#print(paste("The server could not return results for:", name, "."))
 		} else if (response_codes[name] == 200) {
-			print(paste("The server successfully retrieved results for:", name, "."))
+			#print(paste("The server successfully retrieved results for:", name, "."))
 		} else {
-			print("An unknown error occurred.","AGI: ", name, ", Response Code: ", response_codes[name]) 
+			#print("An unknown error occurred.","AGI: ", name, ", Response Code: ", response_codes[name]) 
 		}
 	}
 	return(response_codes)
@@ -52,7 +52,7 @@ getVariants <- function (gids) {
 			variants[[i-1]]$name = gids[i-1]
 			variants[[i]]$name = gids[i]
 			Sys.sleep(1)
-			print(paste("Request:", i))
+			#print(paste("Request:", i))
 		} else if (i == 0) {
 			stop("No AGIs were specified at the command line")
 		}
