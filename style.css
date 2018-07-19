@@ -1,6 +1,23 @@
- {
+html, body {
+	height:100vh;
+	flex-direction: column;
+}
+ 
+{
 	background-color: #454851;
 	border-style: solid;
 	border-color: white;
 	border-radius:5px;
+}
+
+#graphPanel, #inputPanel{
+	height:93vh;
+}
+
+.row, .container-fluid, .col-lg-3, .col-lg-9 {
+	height:93vh; 
+}
+
+.navbar {
+	height:7vh;
 }

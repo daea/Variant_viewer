@@ -159,8 +159,10 @@ function extractId(value) {
 	var match = re.exec(value);
 	//console.log(match);
 	if (match[1].length > 0) {
+		console.log(match[0].toUpperCase());
 		return(match[0].toUpperCase());
-	} else {
+	} else {	
+		console.log(match[0].toUpperCase());
 		return(match[0].toUpperCase() + ".1");
 	};
 }
