@@ -8,10 +8,11 @@
 // Request URLs
 var AGI_URL = "http://bar.utoronto.ca/eplant/cgi-bin/idautocomplete.cgi?species=Arabidopsis_thaliana&term=";
 var PHP_URL = "scripts/plotVariants.php?locus=";
-
+let STRUCTURE_URL = "http://bar.utoronto.ca/webservices/bar_araport/gene_structure_by_locus.php?locus=";
 // Global AGI list
 var queryAgis = [];
 
+let geneRequests = [];
 // Main Flow Control
 window.addEventListener("load", function() {
 	
@@ -63,6 +64,7 @@ function hinter(event) {
 	};
 }
 
+
 // Make sure that the selected AGI is from the list
 // Might remove this to all splice isoforms...
 function validateForm() {
@@ -98,12 +100,16 @@ function addGene(input) {
 		addedGenes.innerHTML = '';	
 		createListElement(input);
 		queryAgis.push(input.value);
-		addSubmitButton();
-	
+		//console.log(extractId(input.value));
+		getGeneModels(extractId(input.value));
+		addSubmitButton();	
+
 	} else if ( queryAgis.length < 10 && input.value.length != 0) {
 	
 		createListElement(input);		
 		queryAgis.push(input.value);
+		getGeneModels(extractId(input.value));
+
 	} else {
 		alert("The gene could not be successfully added to the list.");
 	};
@@ -111,19 +117,22 @@ function addGene(input) {
 
 // Remove a Gene from the Active Genes Panel
 function removeGene (event) {
-	var listGroup = document.getElementById(event.target.id).parentElement.parentElement;
-	console.log(listGroup);
-	if (event.target.nodeName == 'A') {
-		queryAgis = queryAgis.filter(function(e) { return e !== event.target.id });
-		
-		document.getElementById(event.target.id).parentElement.remove();
-		if (queryAgis.length == 0) {
-			listGroup.innerHTML = '<li class="list-group-item d-flex justify-content-between">You have not added any genes yet</li>';
-		};
+	
+	if (document.getElementById(event.target.id) == null) {
+		;
 	} else {
-		console.log("Not finding the element");
-	};	
-
+		var listGroup = document.getElementById(event.target.id).parentElement.parentElement;
+		if (event.target.nodeName == 'A') {
+			queryAgis = queryAgis.filter(function(e) { return e !== event.target.id });	
+			document.getElementById(event.target.id).parentElement.remove();
+			overview.removeStructure(extractId(event.target.id));
+			if (queryAgis.length == 0) {
+				listGroup.innerHTML = '<li class="list-group-item d-flex justify-content-between">You have not added any genes yet</li>';
+			};
+		} else {
+			console.log("Not finding the element");
+		};	
+	};
 }
 
 // Append <li> elements to the parent <ul> node in the Active Genes panel
@@ -192,7 +201,28 @@ function submitAgis(event) {
 	};
 }
 
+// GET structure data for gene models
+function getGeneModels(agi) {
+	let structureXHR = new XMLHttpRequest();
+	console.log("in the models");
+	structureXHR.onreadystatechange = function () {
+		if (this.readyState == 4 && this.status == 200) {
+			// here is where we add the plots to the graphPanel	
+		 	console.log("successful request");
+			overview.addStructure(structureXHR, 'graphPanel');
+		};
+	};
+	structureXHR.open("GET", STRUCTURE_URL + agi.substr(0, agi.indexOf('.')), true);
+	structureXHR.send();	
+};
 
-// Gene Structure Drawing in 
-// Eplant.views.GeneInfoView.js
-// Lines 99 - 483
+
+// Initialize the Overview pane
+function addOverview(destination) {
+	
+}
+
+
+
+
+
