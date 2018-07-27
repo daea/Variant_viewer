@@ -130,8 +130,7 @@ calcFrequencies <- function(data) {
 				original = str_match(amino_acid_change, mutantPattern)[2],
 				site     = as.numeric(str_match(amino_acid_change, mutantPattern)[3]),
 				variant  = str_match(amino_acid_change, mutantPattern)[4]
-			) %>%
-	  filter(submission_id == transcript_id)
+			)
 	
 	nsSNPs$gene_name <- as.factor(nsSNPs$gene_name)
 	nsSNPs$submission_id <- as.factor(nsSNPs$submission_id)
@@ -328,7 +327,7 @@ formatCddPfam <- function(pfam_domains, cdd_residues, variantMap) {
 	  levels(cdd_pfam$gene_name) <- as.factor(ids$name)
 	  
 	  
-	} else if ( !is.NULL(nrow(cdd_residues)) && pfam_domains == FALSE ) {
+	} else if ( !is.null(nrow(cdd_residues)) && pfam_domains == FALSE ) {
 	  # If there are no listed PFAM domains, but there are CDD residues
 	  
 	  #### Combine CDD and pfam Data ####
@@ -338,7 +337,7 @@ formatCddPfam <- function(pfam_domains, cdd_residues, variantMap) {
 		mutate(start_pos = position, end_pos = position + 1) %>%
 		select(-c(position))
 	  
-	  cdd_pfam <- pfam_mapped %>% 
+	  cdd_pfam <- cdd_mapped %>% 
 		select(-c(cdd_domain))
 
 	  ids <- nsSNPs %>% group_by(gene_name, submission_id) %>% summarize()

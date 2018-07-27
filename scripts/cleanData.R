@@ -15,7 +15,7 @@ source("helper_functions.R")
 
 
 # Run the following two lines to use in RStudio
-#args = "AT4G34000.1,AT1G45249.1,AT1G49720.1,AT3G19290.1"
+#args = "AT1G45249.1"
 #gids = unlist(str_extract_all(args, 'AT[0-9]G[0-9]+[.]?[0-9]?'))
 
 #### Global Error list ####
