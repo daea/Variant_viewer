@@ -22,3 +22,11 @@ html, body {
 	height:7vh;
 }
 
+span.varView {
+	color: darkgreen;
+	font-weight: bold;
+}
+
+#dataExport .btn {
+	padding: 5px;
+}

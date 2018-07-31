@@ -124,7 +124,7 @@ formatVariants <- function(variants) {
 calcFrequencies <- function(data) {
 	mutantPattern = "p.([:alpha:]{3})([:digit:]+)([:alpha:]{3})" 	# Matches the snpEFF effect field and extracts variant info
 	nsSNPs = summarise(
-		group_by(data, gene_name, amino_acid_change, submission_id, pos, transcript_id),
+		group_by(data, gene_name, amino_acid_change, submission_id, pos),
 					   n = n()) %>% 
 			mutate(freq = n / 1135,         # Split up that variant column
 				original = str_match(amino_acid_change, mutantPattern)[2],

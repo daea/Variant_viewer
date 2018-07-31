@@ -1,8 +1,8 @@
 #### 2018 Matt Cumming - Provart Lab 2018  ####
 #### SNP Analyses ####
 
-suppressMessages({
-suppressWarnings({
+#suppressMessages({
+#suppressWarnings({
 library(dplyr)
 library(stringr)
 library("httr")
@@ -77,7 +77,7 @@ if (gids != FALSE) {
 }
 
 
-	})
-})
+#	})
+#})
 
 

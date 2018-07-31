@@ -35,7 +35,7 @@ var overview = {};
 	this.removeStructure = function(gene) {
 		let toRemove = '.' + gene.substring(0, gene.indexOf('.'));
 		if (d3.select(this.tableId).empty() == true) {
-			;
+			this.destination.innerHTML = '';
 		} else if (d3.select(this.tableId).empty() == false) {
 			d3.selectAll(toRemove).remove()
 		} else {
@@ -51,8 +51,9 @@ var overview = {};
 		let table = d3.select(destination)
 			.append('table')
 			.classed('table-hover', true)
+			.attr('width', '100%')
 			.attr('id', this.tableId.replace('#', ''));
-		
+	
 		let thead = table.append('thead').append('tr');
 		
 		thead
@@ -70,10 +71,11 @@ var overview = {};
 	}
 
 	// Create the isoform plots
-	this.makePlots = function(XHR, destinationTable) {
-	
+	this.makePlots = function(data, destinationTable) {
+		
+		console.log(data);
+
 		let table = d3.select(destinationTable);
-		let data = JSON.parse(XHR.response);
 		if (data.wasSuccessful == true && data.error == null) {		
 
 			// Should only have one gene per request
@@ -90,8 +92,11 @@ var overview = {};
 				.style('text-align', 'left')
 				.append('h6')
 				.append('strong')
-				.text(gene);
+				.text(gene)
 			
+			let sizeGuide = geneHeader.append('td');
+			console.log("Size of Header: " + sizeGuide.style('width'));
+		
 			// Iterate over the Isoforms (by mRNA)
 			data.features[0].subfeatures
 				.sort(function(a,b) {
@@ -107,11 +112,14 @@ var overview = {};
 				let geneSection = table.append('tbody')
 					.classed(gene, true);
 				let row = geneSection.append('tr');
-				row.append('td').text(isoform.uniqueID);
+				row.append('td')
+					.text(isoform.uniqueID)
+					.style("width", '120px');
 				let structure = row.append('td');
 				let container = structure.append('div');
-				
-				let w = 600;
+					
+				console.log("Size after adding td: " + sizeGuide.style('width'));
+				let w = parseInt(container.style('width'));
 				let h = 20;
 
 				// Scale for converting genomic coordinates to plot values
@@ -259,6 +267,5 @@ var overview = {};
 				.text('An error occurred while rendering the plot');
 		};
 	};
-
 }).apply(overview);
 

@@ -58,7 +58,7 @@ function main() {
             if ($validAGIs){
                 $output = [];
                 $execString = substr($execString, 0, -1); #remove last ','
-				#$execString .= " 2>&1"; // Matt: trying to redirect all output  
+			//	$execString .= " 2>&1"; // Matt: trying to redirect all output  
 					// echo($execString); #test 
                 exec($execString, $output);
                 foreach($output as $line){

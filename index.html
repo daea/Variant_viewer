@@ -7,7 +7,7 @@
 <html>	
 <head>
 	
-	<title>Variant Viewer</title>
+	<title>variant Viewer</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css">
@@ -37,7 +37,7 @@
 <body id="bootstrap-overrides">
 	<!-- Navigation bar -->
 	<nav class="navbar navbar-expand-md navbar-dark bg-dark">
-		<a class="navbar-brand" href="">Variant Viewer</a>
+		<a class="navbar-brand" href=""><span class="varView">v</span>ariant <span class="varView">V</span>iewer</a>
 		<div class="collapse navbar-collapse" id="navbarsExampleDefault">
 			<ul class="navbar-nav mr-auto">
 				<li class="nav-item active">
@@ -71,22 +71,67 @@
 			<div id="inputPanel" class="col-lg-3" style="padding: 1rem; background-color: #73956f;">
 				<!-- AGI input fields -->
 				<div class="form-group" style="margin-bottom: 0rem;">
-					<label for="agiInput"><h4>Enter a gene <small>(e.g. AT3G24650)</small><h5></label>
+					<label for="agiInput"><h4>Select a gene <small>(e.g. AT3G24650)</small><h5></label>
 					
 					<input type="text" name="agi" class="form-control" id="agiInput" aria-describedBy="agiHelp" placeholder="Start typing an AGI" list="huge_list" autocomplete="off" autocorrect="off" style="padding: 5px; height: 50px; border-radius: 5px;">
-					<small id="agiHelp" class="form-text" style="margin-bottom: 10px">Type 5 characters to see a list of available genes.</small>
+					<small id="agiHelp" class="form-text" style="margin-bottom: 10px">Type several characters to see a list of available genes.</small>
 						<datalist id="huge_list">
 						</datalist>
 					<input id="addAgi" type="submit" class="btn btn-secondary" value="Add gene">	
 				</div>
 				<hr style="margin-top: 0rem;">	
-				<label for="addedGenes"><h4> Active genes </h5></label>
+				<label for="addedGenes"><h4> Selected genes </h5></label>
+				<div id="activeGenes">
 				<ul id="addedGenes" class="list-group" style="margin-bottom: 5px">
 					<li class="list-group-item">You have not added any genes</li>
 				</ul>
-
+				</div>
+				<div id="dataExport" style="padding: 5px">
+					<hr style="margin-top: 0rem;">	
+					<h4>Export your selected data <small> (Coming soon) </small></h4>
+					<input id="exportJson" type="submit" class="btn btn-secondary" value="Export JSON">
+					<input id="exportCsv" type="submit" class="btn btn-secondary" value="Export .CSV">
+					<input id="exportText" type="submit" class="btn btn-secondary" value="Export TEXT">
+				</div>
 			</div>
-				<div id="graphPanel" class="col-lg-9">
+				<div id="graphPanel" class="col-lg-9" style="padding: 20px">		
+					<section class="jumbotron text-center">
+						<div class="container">
+							<h1 class="jumbotron-heading"> Welcome to the <i>A.thaliana</i> <span class="varView">v</span>ariant <span class="varView">V</span>iewer </h1>
+							<p class="lead text-muted">The variant Viewer allows you to view the locations of single nucleotide polymorphisms from the 1135 sequenced <i>A.thaliana</i> accessions in the 
+							<a href="http://1001genomes.org">1001 Genomes project</a> across alignments of <i>Arabidopsis thaliana</i> genes. <br/>
+							<table style="margin: 0 auto;">
+								<tbody class="AT3G24650">
+									<tr>
+										<td>AT3G24650.1</td>
+										<td>
+											<div>
+												<svg height="20" width="600">
+													<rect x="0" y="11" width="600" height="2" fill="#000000"></rect>
+													<rect x="380.7601572739187" y="5" width="14.469200524246446" height="20" fill="#52AA5E"></rect>
+													<rect x="0" y="5" width="349.1480996068152" height="20" fill="#52AA5E"></rect>
+													<rect x="418.1913499344692" y="5" width="15.727391874180853" height="20" fill="#52AA5E"></rect>
+													<rect x="454.99344692005246" y="5" width="7.234600262123138" height="20" fill="#52AA5E"></rect>
+													<rect x="480.786369593709" y="5" width="11.952817824377519" height="20" fill="#52AA5E"></rect>
+													<rect x="510.5111402359109" y="5" width="89.48885976408911" height="20" fill="#52AA5E"></rect>
+													<rect x="85.08519003931849" y="5" width="264.0629095674967" height="20" fill="#427AA1"></rect>
+													<rect x="380.7601572739187" y="5" width="14.469200524246446" height="20" fill="#427AA1"></rect>
+													<rect x="418.1913499344692" y="5" width="15.727391874180853" height="20" fill="#427AA1"></rect>
+													<rect x="454.99344692005246" y="5" width="7.234600262123138" height="20" fill="#427AA1"></rect>
+													<rect x="480.786369593709" y="5" width="11.952817824377519" height="20" fill="#427AA1"></rect>
+													<rect x="510.5111402359109" y="5" width="25.79292267365662" height="20" fill="#427AA1"></rect>
+													<rect x="0" y="5" width="84.92791612057667" height="6.666666666666667" fill="#3AAED8"></rect>
+													<rect x="536.4613368283093" y="5" width="63.5386631716907" height="6.666666666666667" fill="#3AAED8"></rect>
+												</svg>
+											</div>
+										</td>
+									</tr>
+								</tbody>
+							<table>
+							<br/>
+							<h4>Select a gene on the left to start.</strong> </h4>
+						</div>
+					</section>
 					<!--	<iframe id="serviceFrameSend" src="scripts/variant-plot.html" width="1200" height="800"  frameborder="0">-->	
 				</div>
 		</div>
@@ -98,6 +143,7 @@
 	<script src="scripts/overview.js"></script>	
 	<script src="scripts/main.js"></script>	
 	<script src="scripts/plots.js"></script>	
+	<script src="scripts/varData.js"></script>	
 </script>
 </body>	
 </html>
@@ -109,21 +155,8 @@
 
 
 
+<!-- Eventual Tooltip text
+ <br>To select a specific gene isoform/model make sure to append the correct isoform number (ex. ".3"). <br>A gene selected from the dropdown box will automatically return the ".1" gene model.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+ -->
 

@@ -12,10 +12,14 @@ let STRUCTURE_URL = "http://bar.utoronto.ca/webservices/bar_araport/gene_structu
 // Global AGI list
 var queryAgis = [];
 
+var introPanel = '';
+
 let geneRequests = [];
 // Main Flow Control
 window.addEventListener("load", function() {
 	
+	
+
 	// global XHR object for autocomplete/ graphing
 	window.hinterXHR = new XMLHttpRequest();
 	window.graphXHR = new XMLHttpRequest();
@@ -33,6 +37,7 @@ window.addEventListener("load", function() {
 	var activeGenes = document.getElementById('addedGenes');
 	activeGenes.addEventListener("click", function(event) {removeGene(event)});
 	
+	// submit genes and return msa with variants
 	var input_panel = document.getElementById("inputPanel");
 	input_panel.addEventListener("click", function(event) {submitAgis(event)});
 
@@ -64,54 +69,55 @@ function hinter(event) {
 	};
 }
 
-
-// Make sure that the selected AGI is from the list
-// Might remove this to all splice isoforms...
-function validateForm() {
-	var input = document.getElementById('agiInput');
-	var huge_list = document.getElementById('huge_list');
-	for (var element of huge_list.children) {
-		if (element.value == input.value) {		
-			addGene(element.value);
-			return true;
-		}
-	alert("name input is invalid");
-	return false;
-	}
-}
-
 // Add a gene to the Active Genes Panel
 function addGene(input) {
-	var addedGenes = document.getElementById('addedGenes');	
-	if ( queryAgis.length >= 10) {
 	
-		alert("You have entered the maximum number of genes.");
-	
-	} else if ( queryAgis.includes(input.value) == true) {
-	
-		alert("That gene is already included in the list.");
-	
-	} else if ( input.value.length == 0) {
-	
-		alert("Please enter a gene in the search box.");
-	
-	} else if ( queryAgis.length == 0 && input.value.length != 0) {
-	
-		addedGenes.innerHTML = '';	
-		createListElement(input);
-		queryAgis.push(input.value);
-		//console.log(extractId(input.value));
-		getGeneModels(extractId(input.value));
-		addSubmitButton();	
-
-	} else if ( queryAgis.length < 10 && input.value.length != 0) {
-	
-		createListElement(input);		
-		queryAgis.push(input.value);
-		getGeneModels(extractId(input.value));
-
+	let addedGenes = document.getElementById('addedGenes');
+	if (extractId(input.value) == false) {
+		alert("That is not a valid selection");
 	} else {
-		alert("The gene could not be successfully added to the list.");
+		if ( queryAgis.length >= 10) {
+		
+			alert("You have entered the maximum number of genes.");
+		
+		} else if ( queryAgis.includes(input.value) == true) {
+		
+			alert("That gene is already included in the list.");
+		
+		} else if ( input.value.length == 0) {
+		
+			alert("Please enter a gene in the search box.");
+		
+		} else if ( queryAgis.length == 0 && input.value.length != 0) {
+		
+				addedGenes.innerHTML = '';
+				introPanel = document.getElementById("graphPanel").innerHTML;
+				document.getElementById("graphPanel").innerHTML = '';
+				createListElement(input);	
+				queryAgis.push(input.value);
+				
+				varData
+					.getStructureData(extractId(input.value))
+					.then( data =>
+						overview.addStructure(data, "graphPanel")
+					);
+
+				addSubmitButton();	
+
+		} else if ( queryAgis.length < 10 && input.value.length != 0) {
+
+			createListElement(input);		
+			queryAgis.push(input.value);
+			
+			varData
+				.getStructureData(extractId(input.value))
+				.then( data =>
+					overview.addStructure(data, "graphPanel")
+				);
+
+		} else {
+			alert("The gene could not be successfully added to the list.");
+		};
 	};
 }
 
@@ -128,6 +134,7 @@ function removeGene (event) {
 			overview.removeStructure(extractId(event.target.id));
 			if (queryAgis.length == 0) {
 				listGroup.innerHTML = '<li class="list-group-item d-flex justify-content-between">You have not added any genes yet</li>';
+				document.getElementById("graphPanel").innerHTML = introPanel;
 			};
 		} else {
 			console.log("Not finding the element");
@@ -151,7 +158,7 @@ function createListElement(input) {
 function addSubmitButton() {
 	var exists = document.getElementById('sendAgis');
 	if (typeof(exists) == "object" && exists == null) {
-		var input_panel = document.getElementById("inputPanel");
+		var input_panel = document.getElementById("activeGenes");
 		var submitAgis = document.createElement("button");
 		submitAgis.id = "sendAgis";
 		submitAgis.type = "submit";
@@ -166,13 +173,16 @@ function addSubmitButton() {
 function extractId(value) {
 	var re = /^AT[0-9]G[0-9]+([.]?[0-9]?)/i;
 	var match = re.exec(value);
-	//console.log(match);
-	if (match[1].length > 0) {
-		console.log(match[0].toUpperCase());
-		return(match[0].toUpperCase());
-	} else {	
-		console.log(match[0].toUpperCase());
-		return(match[0].toUpperCase() + ".1");
+	if (match != null) {
+		if (match[1].length > 0) {
+			console.log(match[0].toUpperCase());
+			return(match[0].toUpperCase());
+		} else {	
+			console.log(match[0].toUpperCase());
+			return(match[0].toUpperCase() + ".1");
+		};
+	} else {
+		return false;
 	};
 }
 
@@ -204,25 +214,14 @@ function submitAgis(event) {
 // GET structure data for gene models
 function getGeneModels(agi) {
 	let structureXHR = new XMLHttpRequest();
-	console.log("in the models");
 	structureXHR.onreadystatechange = function () {
 		if (this.readyState == 4 && this.status == 200) {
 			// here is where we add the plots to the graphPanel	
-		 	console.log("successful request");
 			overview.addStructure(structureXHR, 'graphPanel');
 		};
 	};
 	structureXHR.open("GET", STRUCTURE_URL + agi.substr(0, agi.indexOf('.')), true);
 	structureXHR.send();	
 };
-
-
-// Initialize the Overview pane
-function addOverview(destination) {
-	
-}
-
-
-
 
 
