@@ -1,25 +1,55 @@
+/* 
+ * CSS Styling for variant Viewer
+ * Matt Cumming
+ * July 2018
+ */
 html, body {
-	height:100vh;
-	flex-direction: column;
-}
- 
-{
-	background-color: #454851;
-	border-style: solid;
-	border-color: white;
-	border-radius:5px;
+	height:100%;
 }
 
-#graphPanel, #inputPanel{
-	height:93vh;
+.flex-fill {
+	flex:1;
 }
 
-.row, .container-fluid, .col-lg-3, .col-lg-9 {
-	height:93vh; 
+.inputPanelItem {
+	padding: 8px;
+	background-color: #8DB088;
+	margin-top: 8px;
+	margin-bottom: 8px;
+	border-radius: 5px;
 }
 
-.navbar {
-	height:7vh;
+.inputPanelHeader {
+	background-color: #6c757d;
+	border-radius: 5px;
+	margin-bottom: 5px;
+}
+
+.inputLabel > h4 {
+	padding-left: 5px;
+	color: white;
+	"blur":text-shadow: -1px 0 #343a40, 0 1px #343a40, 1px 0 #343a40, 0 -1px #343a40;
+}
+
+.inputLabel {
+	margin-bottom: 0;
+}
+
+.btn-secondary {
+	margin-top: 5px;
+	margin-left: 5px;
+	margin-right: 5px;
+}
+
+#splash {
+	margin-top: 8px;
+	margin-bottom: 8px;
+
+}
+
+#inputPanel {	
+	background-color: #73956f;
+	padding: 10px;
 }
 
 span.varView {
@@ -27,6 +57,10 @@ span.varView {
 	font-weight: bold;
 }
 
-#dataExport .btn {
-	padding: 5px;
+.geneHeader {
+	padding-top: 6px;
+	padding-bottom: 0;
+	text-align: left;
 }
+
+

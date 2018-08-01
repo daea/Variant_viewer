@@ -57,24 +57,35 @@ var overview = {};
 		let thead = table.append('thead').append('tr');
 		
 		thead
-			.selectAll('th')
-			.data(["Isoform Id", "Isoform Structure"])
-			.enter()
+			//.selectAll('th')
+			//.data(["Isoform Id", "Isoform Structure"])
+			//.enter()
+			.append('th')
+			.classed('border-bottom', true)
+			.classed('text-left', true)
+			.append('h5')
+			.classed('text-left', true)
+			.append('strong')	
+			.text("ISOFORM");
+		
+		thead
 			.append('th')
 			.classed('border-bottom', true)
 			.classed('text-center', true)
 			.append('h5')
-			.classed('text-middle', true)
-			.append('strong')
-			.text(function(d) { return d; })
+			.classed('text-center', true)
+			.append('strong')	
+			.text("ISOFORM STRUCTURE")
+		
+
+			//.text(function(d) { return d; })
+		
 		return table;
 	}
 
 	// Create the isoform plots
 	this.makePlots = function(data, destinationTable) {
 		
-		console.log(data);
-
 		let table = d3.select(destinationTable);
 		if (data.wasSuccessful == true && data.error == null) {		
 
@@ -87,15 +98,12 @@ var overview = {};
 				.classed(gene, true)
 
 			geneHeader.append('td')	
-				.style('padding-top', '6px')
-				.style('padding-bottom', '0')
-				.style('text-align', 'left')
+				.classed('geneHeader', true)
 				.append('h6')
 				.append('strong')
 				.text(gene)
 			
 			let sizeGuide = geneHeader.append('td');
-			console.log("Size of Header: " + sizeGuide.style('width'));
 		
 			// Iterate over the Isoforms (by mRNA)
 			data.features[0].subfeatures
@@ -118,7 +126,6 @@ var overview = {};
 				let structure = row.append('td');
 				let container = structure.append('div');
 					
-				console.log("Size after adding td: " + sizeGuide.style('width'));
 				let w = parseInt(container.style('width'));
 				let h = 20;
 
@@ -140,8 +147,7 @@ var overview = {};
 					.style("padding", "4px")
 					.style("border-radius", "4px")
 					.style("font-size", "12px");
-	
-
+				
 				// Gene Locus	
 				plot.selectAll('rect')	
 					.data([ [geneStart, geneEnd, "Gene"] ])	
@@ -177,81 +183,57 @@ var overview = {};
 				isoform.subfeatures.sort(function (a,b) {
 					return layerOrder.indexOf(a.type) - layerOrder.indexOf(b.type);
 				});
-
-				// Colours of features
-				let colorPalette = [ 
-					"#388659",  // Darkish green
-					"#427AA1", // Darkish blue
-					"#52AA5E",  // Brighter green
-					"#3AAED8", // Lighter muted blue
-					"#2BD9FE", // Light blue
-				];
-
-				let featureLength = isoform.subfeatures.length;
-				for (let j=0; j<featureLength; j++) {
-					if (isoform.subfeatures[j].type == "three_prime_UTR" || isoform.subfeatures[j].type == "five_prime_UTR") {
-						let featLength = xscale(isoform.subfeatures[j].end) -  xscale(isoform.subfeatures[j].start);	
-						plot
-							.append('rect')
-							.attr('x', xscale(isoform.subfeatures[j].start))
-							.attr('y', h / 4)
-							.attr('width', featLength)
-							.attr('height', h/3)
-							.attr('fill', colorPalette[3])
-							.on('mouseover', function () {
-								return tooltip.style('visibility', 'visible')
-									.html("<strong>Feature Type:</strong> " + isoform.subfeatures[j].type + 
-										"<br><strong>Feature Start:</strong> " + isoform.subfeatures[j].start +
-										"<br><strong>Feature End: </strong>" + isoform.subfeatures[j].end);
-							})
-							.on('mousemove', function () {
-								return tooltip.style('top', (event.pageY-10) +"px").style("left", (event.pageX+10)+"px");})
-							.on('mouseout', function () {return tooltip.style('visibility', 'hidden');});
 				
+				let renderPlotFeature = function (feat, colorIndex, heightAdjust) {
+					
+					// Colours of features
+					let colorPalette = [ 
+						"#388659",  // Darkish green
+						"#427AA1", // Darkish blue
+						"#52AA5E",  // Brighter green
+						"#3AAED8", // Lighter muted blue
+						"#2BD9FE", // Light blue
+					];
 
 
-
-					} else if (isoform.subfeatures[j].type == "exon") {
-						let featLength = xscale(isoform.subfeatures[j].end) -  xscale(isoform.subfeatures[j].start);	
-						plot
-							.append('rect')
-							.attr('x', xscale(isoform.subfeatures[j].start))
-							.attr('y', h / 4)
-							.attr('width', featLength)
-							.attr('height', h)
-							.attr('fill', colorPalette[2])
-							.on('mouseover', function () {
-								return tooltip.style('visibility', 'visible')
-									.html("<strong>Feature Type:</strong> " + isoform.subfeatures[j].type + 
-										"<br><strong>Feature Start:</strong> " + isoform.subfeatures[j].start +
-										"<br><strong>Feature End: </strong>" + isoform.subfeatures[j].end);
-							})
-							.on('mousemove', function () {
-								return tooltip.style('top', (event.pageY-10) +"px").style("left", (event.pageX+10)+"px");})
-							.on('mouseout', function () {return tooltip.style('visibility', 'hidden');});
+					let featureLength = xscale(feat.end) - xscale(feat.start);	
 				
+					plot
+						.append('rect')
+						.attr('x', xscale(feat.start))
+						.attr('y', h / 4)
+						.attr('width', featureLength)
+						.attr('height', h/ heightAdjust)
+						.attr('fill', colorPalette[colorIndex])
+						.on('mouseover', () => {
+							tooltip.style('visibility', 'visible')
+								.html("<strong>Feature Type:</strong> " + feat.type + 
+									"<br><strong>Feature Start:</strong> " + feat.start +
+									"<br><strong>Feature End: </strong>" + feat.end);
+						})
+						.on('mousemove', () => {
+							 tooltip
+								.style('top', (event.pageY-10) +"px")
+								.style("left", (event.pageX+10)+"px");
+						})
+						.on('mouseout',() => {
+							tooltip.style('visibility', 'hidden');
+						});
+				};
+			
+				for (const feat of isoform.subfeatures) {
+					
+					if (feat.type == "three_prime_UTR" || feat.type == "five_prime_UTR") {
+						 
+						renderPlotFeature(feat, 3, 3);
 
+					} else if (feat.type == "exon") {
+					
+						renderPlotFeature(feat, 2, 1);
 
-					} else if (isoform.subfeatures[j].type == "CDS") {
-				
-						let featLength = xscale(isoform.subfeatures[j].end) -  xscale(isoform.subfeatures[j].start);	
-						plot
-							.append('rect')
-							.attr('x', xscale(isoform.subfeatures[j].start))
-							.attr('y', h / 4)
-							.attr('width', featLength)
-							.attr('height', h)
-							.attr('fill', colorPalette[1])
-							.on('mouseover', function () {
-								return tooltip.style('visibility', 'visible')
-									.html("<strong>Feature Type:</strong> " + isoform.subfeatures[j].type + 
-										"<br><strong>Feature Start:</strong> " + isoform.subfeatures[j].start +
-										"<br><strong>Feature End: </strong>" + isoform.subfeatures[j].end);
-							})
-							.on('mousemove', function () {
-								return tooltip.style('top', (event.pageY-10) +"px").style("left", (event.pageX+10)+"px");})
-							.on('mouseout', function () {return tooltip.style('visibility', 'hidden');});
-				
+					} else if (feat.type == "CDS") {
+		
+						renderPlotFeature(feat, 1, 1);
 
 					} else {
 						;

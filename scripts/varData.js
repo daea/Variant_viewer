@@ -74,8 +74,7 @@ let varData = {};
 
 		return Promise
 			.all([polymorphRequest, proteinRequest])
-			.then( 
-				function(values) {
+			.then(values => {
 					rawData[agi]["variants"]    = values[0];
 					rawData[agi]["proteinSeq"]  = values[1];
 
@@ -111,6 +110,10 @@ let varData = {};
 				rawData[agi]["proteinSeq"] = { "error": e};
 			})
 			.then( () => retrieveRawData(agi));
+	};
+
+	this.formattedData = function () {
+		this.retrieveAllData 
 	};
 
 }).apply(varData);
