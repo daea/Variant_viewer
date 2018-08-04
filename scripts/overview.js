@@ -14,16 +14,20 @@ var overview = {};
 	this.destination = '';
 	this.tableId = '#structureTable';
 
-	this.addStructure = function(response, destination) {
-
+	this.addStructure = function(data, destination, tableId = 0) {
+		if (tableId !=0) {
+			this.tableId = '#' + tableId;
+		} else {
+			;
+		};
 		if (d3.select(this.tableId).empty() == true) {
 			
 			this.destination = '#' + destination;
 			this.initTable(this.destination);
-			this.makePlots(response, this.tableId);
+			this.makePlots(data, this.tableId);
 		
 		} else if (d3.select(this.tableId).empty() == false) {
-			this.makePlots(response, this.tableId);
+			this.makePlots(data, this.tableId);
 		
 		} else {
 			d3.select(this.destination)
@@ -169,9 +173,10 @@ var overview = {};
 									"<br><strong>Feature Start:</strong> " + d[0] +
 									"<br><strong>Feature End: </strong>" + d[1]);
 					})
-					.on('mousemove', function (d) {
-						return tooltip.style('top', (event.pageY-10) +"px").style("left", (event.pageX+10)+"px");})
-					.on('mouseout', function (d) {return tooltip.style('visibility', 'hidden');});
+					.on('mousemove', () => {
+						return tooltip.style('top', (d3.event.pageY-10) +"px").style("left", (d3.event.pageX+10)+"px");})
+					.on('mouseout', () => {
+						return tooltip.style('visibility', 'hidden');});
 				
 				// Sort the features
 				let layerOrder = [	"exon",
@@ -213,8 +218,8 @@ var overview = {};
 						})
 						.on('mousemove', () => {
 							 tooltip
-								.style('top', (event.pageY-10) +"px")
-								.style("left", (event.pageX+10)+"px");
+								.style('top', (d3.event.pageY-10) +"px")
+								.style("left", (d3.event.pageX+10)+"px");
 						})
 						.on('mouseout',() => {
 							tooltip.style('visibility', 'hidden');

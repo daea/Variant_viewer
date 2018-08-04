@@ -11,6 +11,11 @@ html, body {
 	flex:1;
 }
 
+#inputPanel {	
+	background-color: #73956f;
+	padding: 10px;
+}
+
 .inputPanelItem {
 	padding: 8px;
 	background-color: #8DB088;
@@ -37,19 +42,13 @@ html, body {
 
 .btn-secondary {
 	margin-top: 5px;
-	margin-left: 5px;
-	margin-right: 5px;
+	margin-left: 1px;
+	margin-right: 1px;
 }
 
 #splash {
 	margin-top: 8px;
 	margin-bottom: 8px;
-
-}
-
-#inputPanel {	
-	background-color: #73956f;
-	padding: 10px;
 }
 
 span.varView {
@@ -62,5 +61,13 @@ span.varView {
 	padding-bottom: 0;
 	text-align: left;
 }
+
+.table-hover > tr {
+	background-color: lightgrey;
+	border-radius:5px;
+}
+
+
+
 
 

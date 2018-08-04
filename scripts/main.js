@@ -6,9 +6,10 @@
 
 
 // Request URLs
-var AGI_URL = "http://bar.utoronto.ca/eplant/cgi-bin/idautocomplete.cgi?species=Arabidopsis_thaliana&term=";
-var PHP_URL = "scripts/plotVariants.php?locus=";
+var AGI_URL       = "http://bar.utoronto.ca/eplant/cgi-bin/idautocomplete.cgi?species=Arabidopsis_thaliana&term=";
+var PHP_URL       = "scripts/plotVariants.php?locus=";
 let STRUCTURE_URL = "http://bar.utoronto.ca/webservices/bar_araport/gene_structure_by_locus.php?locus=";
+let DEFAULT_AGI   = "At2g18790";
 // Global AGI list
 var queryAgis = [];
 
@@ -19,7 +20,6 @@ let geneRequests = [];
 window.addEventListener("load", function() {
 	
 	
-
 	// global XHR object for autocomplete/ graphing
 	window.hinterXHR = new XMLHttpRequest();
 	window.graphXHR = new XMLHttpRequest();
@@ -41,6 +41,8 @@ window.addEventListener("load", function() {
 	var input_panel = document.getElementById("inputPanel");
 	input_panel.addEventListener("click", function(event) {submitAgis(event)});
 
+	// add initial gene structure
+	initSplashPanelStruct(DEFAULT_AGI);
 });
 
 // Autocomplete function
@@ -71,49 +73,67 @@ function hinter(event) {
 
 // Add a gene to the Active Genes Panel
 function addGene(input) {
-	
+
+	let agi = extractId(input.value);
 	let addedGenes = document.getElementById('addedGenes');
-	if (extractId(input.value) == false) {
+	
+	// Did extractId return an agi?
+	if (agi == false) {
 		alert("That is not a valid selection");
 	} else {
 		if ( queryAgis.length >= 10) {
-		
+			// too many genes active
 			alert("You have entered the maximum number of genes.");
-		
-		} else if ( queryAgis.includes(input.value) == true) {
-		
+		} else if ( queryAgis.includes(agi) == true) {
+			// gene isoform exists in list
 			alert("That gene is already included in the list.");
-		
 		} else if ( input.value.length == 0) {
-		
+			// input box is empty
 			alert("Please enter a gene in the search box.");
-		
 		} else if ( queryAgis.length == 0 && input.value.length != 0) {
-		
+			// First gene, text box not empty
+
+				// First Gene, Remove the dialog box
 				addedGenes.innerHTML = '';
+				// remove the splash text
 				introPanel = document.getElementById("graphPanel").innerHTML;
 				document.getElementById("graphPanel").innerHTML = '';
-				createListElement(input);	
-				queryAgis.push(input.value);
-				
-				varData
-					.getStructureData(extractId(input.value))
-					.then( data =>
-						overview.addStructure(data, "graphPanel")
-					);
+				// create a list node containing the description in the input box (if selected)
+				createListElement(input);
 
+				queryAgis.push(agi);
+					varData
+						.getStructureData(agi)
+						.then( data =>
+							overview.addStructure(data, "graphPanel")
+						);
+					varData
+						.getData(agi)
+						.then( () => varData.retrieveFormattedData(agi))
+						.then( data => console.log(data) )
+						.catch(e => console.log(e));
+						
 				addSubmitButton();	
 
 		} else if ( queryAgis.length < 10 && input.value.length != 0) {
+			let gene = agi.substring(0, agi.indexOf('.'));
+			let genes = queryAgis.map( x => x.substring(0, x.indexOf('.')));
 
-			createListElement(input);		
-			queryAgis.push(input.value);
-			
+			if (genes.includes(gene)) {
+				createListElement(input);		
+				queryAgis.push(agi);
+			} else if (!genes.includes(gene)) {
+				createListElement(input);		
+				queryAgis.push(agi);
+		
 			varData
-				.getStructureData(extractId(input.value))
+				.getStructureData(agi)
 				.then( data =>
 					overview.addStructure(data, "graphPanel")
-				);
+				);	
+			} else {
+				;
+			};
 
 		} else {
 			alert("The gene could not be successfully added to the list.");
@@ -131,7 +151,14 @@ function removeGene (event) {
 		if (event.target.nodeName == 'A') {
 			queryAgis = queryAgis.filter(function(e) { return e !== event.target.id });	
 			document.getElementById(event.target.id).parentElement.remove();
-			overview.removeStructure(extractId(event.target.id));
+			
+			// Only remove the structure if all the isoforms have been removed from queryAgis
+			if (queryAgis.map(agi => agi.substring(0, agi.indexOf('.')))
+					.includes(extractId(event.target.id).substring(0, extractId(event.target.id).indexOf('.')))) {
+				;	
+			} else {		
+				overview.removeStructure(extractId(event.target.id));
+			};	
 			if (queryAgis.length == 0) {
 				listGroup.innerHTML = '<li class="list-group-item d-flex justify-content-between">You have not added any genes yet</li>';
 				document.getElementById("graphPanel").innerHTML = introPanel;
@@ -146,11 +173,8 @@ function removeGene (event) {
 function createListElement(input) {
 	var Agi = document.createElement("li");
 	Agi.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
-	//Agi.classList.add("list-group-item-dark");
-	// add text to the list itm
 	Agi.appendChild(document.createTextNode(input.value));
-	Agi.innerHTML += "<a href='#' id='" + input.value + "' class='badge badge-pill badge-danger'>Remove</a>";
-	// add the item as an element to the addedGenes <ul>
+	Agi.innerHTML += "<a href='#' id='" + extractId(input.value) + "' class='badge badge-pill badge-danger'>Remove</a>";
 	addedGenes.appendChild(Agi);
 }
 
@@ -175,10 +199,8 @@ function extractId(value) {
 	var match = re.exec(value);
 	if (match != null) {
 		if (match[1].length > 0) {
-			console.log(match[0].toUpperCase());
 			return(match[0].toUpperCase());
 		} else {	
-			console.log(match[0].toUpperCase());
 			return(match[0].toUpperCase() + ".1");
 		};
 	} else {
@@ -224,4 +246,10 @@ function getGeneModels(agi) {
 	structureXHR.send();	
 };
 
-
+// Initial Gene Model Plot
+function initSplashPanelStruct (DEFAULT_AGI) {
+	varData.getStructureData(extractId(DEFAULT_AGI))
+				.then( data =>
+					overview.addStructure(data, "splash", "splashStructure")
+				);
+};

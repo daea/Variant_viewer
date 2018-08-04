@@ -21,9 +21,7 @@ let varData = {};
 	const CDD_URL  = "http://bar.utoronto.ca/eplant/cgi-bin/CDDannot.cgi";
 	const PFAM_URL = "http://bar.utoronto.ca/eplant/cgi-bin/PfamAnnot.cgi";
 
-	let structures = {};
 	let rawData = {};
-	let errors = {};
 
 
 	// Final return functions
@@ -32,42 +30,44 @@ let varData = {};
 	};
 
 	retrieveStructure = function (agi) {
-		return structures[agi];
+		return rawData[agi].structures;
 	};
 
 	// Access functions after init
 	this.retrieveError = function (agi) {
-		return errors[agi];
+		return rawData[agi]["errors"];
 	};
 
 	this.retrieveAllData = function () {
-		return { structures, rawData, errors };
+		return rawData;
 	};
-
 
 	// XHR Request Functions
 	this.getStructureData = function (agi) {
 		let gene = agi.substr(0, agi.indexOf('.'));
-		errors[agi] = [];
+			
+		// Init empty agi object
+		rawData[agi] = {"errors": []};	
 
 		return fetch(STRUCTURE_URL + gene)
 			.then(res  => res.json())
-			.then(data => structures[agi] = data)
+			.then(data => rawData[agi]["structures"] = data)
 			.catch(e    => {
-				errors[agi].push(e);
-				structures[agi] = {"error": e};
+				rawData[agi]["errors"].push(e);
 			})
 			.then(() => retrieveStructure(agi));		
 	};
 
 	// Variants, Protein Sequence, PFAM, CDD
 	this.getData = function (agi) {
-	
-		// Init empty agi object
-		rawData[agi] = {};
 
-		let polymorphRequest = fetch(VARIANT_BASE_URL + agi + VARIANT_END_URL)
+		const delay = function(ms) {
+			return new Promise(resolve => setTimeout(resolve, ms));
+		};
+
+		let polymorphRequest = fetch(VARIANT_BASE_URL + agi)
 			.then(res => res.json());
+
 
 		let proteinRequest = fetch(PROT_URL + agi)
 			.then(res => res.json());
@@ -91,29 +91,71 @@ let varData = {};
 						.then(res => res.json())
 						.then(data => rawData[agi]["cddData"] = data)
 						.catch(e => { 
-							errors[agi].push(e)
-							rawData[agi]["cddData"] = { "error": e};
+							rawData[agi]["errors"].push(e);
 						});
 	
 					fetch(PFAM_URL, reqInfo)
 						.then(res => res.json())
 						.then(data => rawData[agi]["pfamData"] = data)
 						.catch(e => {
-							errors[agi].push(e);
-							rawData[agi]["pfamData"] = { "error": e};
+							rawData[agi]["errors"].push(e);
 						});
 				}
 			)
 			.catch(e => {
-				errors[agi].push(e);
-				rawData[agi]["variants"] = { "error": e};
-				rawData[agi]["proteinSeq"] = { "error": e};
+				rawData[agi]["errors"].push(e);
 			})
 			.then( () => retrieveRawData(agi));
 	};
 
-	this.formattedData = function () {
-		this.retrieveAllData 
+	this.retrieveFormattedData = function (agi) {
+		// for plotting and for sending to R
+		return retrieveRawData(agi).variants.data
+			.reduce((data, datum) => {
+				if (datum[12] in data) {
+					if (datum[1] in data[datum[12]]) {
+						if (datum[7] in data[datum[12]][datum[1]]) {
+							data[datum[12]][datum[1]][datum[7]].count++;
+							data[datum[12]][datum[1]][datum[7]].ecotypes.push(datum[2]);
+						} else {
+							data[datum[12]][datum[1]][datum[7]] = {
+								"data":	datum,
+								"count": 1,
+								"ecotypes": [ datum[2] ]	
+							};
+						};
+					} else {
+						data[datum[12]][datum[1]] = {};
+						data[datum[12]][datum[1]][datum[7]] = {
+							"data":	datum,
+							"count": 1,
+							"ecotypes": [ datum[2] ]	
+						};
+					};
+				} else {
+					data[datum[12]] = {};
+					data[datum[12]][datum[1]] = {};
+					data[datum[12]][datum[1]][datum[7]] = {
+						"data":	datum,
+						"count": 1,
+						"ecotypes": [ datum[2] ]
+					};
+				};
+				return data;
+			}, {})
+
+};
+
+	this.retrieveAllFormattedData = function() {
+		return this.retrieveAllData();
 	};
 
 }).apply(varData);
+
+
+
+
+
+
+
+
