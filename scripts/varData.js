@@ -25,7 +25,7 @@ let varData = {};
 
 
 	// Final return functions
-	retrieveRawData = function (agi) {
+	retrieveData = function (agi) {
 		return rawData[agi];
 	};
 
@@ -43,7 +43,7 @@ let varData = {};
 	};
 
 	// XHR Request Functions
-	this.getStructureData = function (agi) {
+	this.getStructure = function (agi) {
 		let gene = agi.substr(0, agi.indexOf('.'));
 			
 		// Init empty agi object
@@ -52,9 +52,6 @@ let varData = {};
 		return fetch(STRUCTURE_URL + gene)
 			.then(res  => res.json())
 			.then(data => rawData[agi]["structures"] = data)
-			.catch(e    => {
-				rawData[agi]["errors"].push(e);
-			})
 			.then(() => retrieveStructure(agi));		
 	};
 
@@ -66,15 +63,29 @@ let varData = {};
 		};
 
 		let polymorphRequest = fetch(VARIANT_BASE_URL + agi)
-			.then(res => res.json());
-
+			.then(response => {
+				if (response.ok) {
+					return response.json();
+				} else if (response.status == 500) {
+					throw new Error("There are no variants available for that isoform")
+				};
+				throw new Error("There was an error fetching the variants data")
+			})
+			.catch(error => rawData[agi]["errors"].push(error));
 
 		let proteinRequest = fetch(PROT_URL + agi)
-			.then(res => res.json());
+			.then(response => { 
+				if (response.ok) {
+					return response.json();
+				};
+				throw new Error("There was an error fetching the variants data");
+			})
+			.catch(error => rawData[agi]["errors"].push(error));
 
 		return Promise
 			.all([polymorphRequest, proteinRequest])
 			.then(values => {
+				
 					rawData[agi]["variants"]    = values[0];
 					rawData[agi]["proteinSeq"]  = values[1];
 
@@ -88,29 +99,44 @@ let varData = {};
 					};
 	
 					fetch(CDD_URL, reqInfo)
-						.then(res => res.json())
+						.then(response => {
+							// Continue here
+							if (response.ok) {
+								return response.json();
+							};
+							throw new Error("Error retrieving CDD data. Response was not 200-299");}
+						)
 						.then(data => rawData[agi]["cddData"] = data)
 						.catch(e => { 
 							rawData[agi]["errors"].push(e);
+							rawData[agi]["cddData"] = {"NoDomains": true};
 						});
 	
 					fetch(PFAM_URL, reqInfo)
-						.then(res => res.json())
+						.then(response => {
+							// Continue here
+							if (response.ok) {
+								return response.json();
+							};
+							throw new Error("Error retrieving CDD data. Response was not 200-299");}
+						)
 						.then(data => rawData[agi]["pfamData"] = data)
 						.catch(e => {
 							rawData[agi]["errors"].push(e);
+							rawData[agi]["pfamData"] = {"NoDomains": true};
 						});
 				}
 			)
 			.catch(e => {
 				rawData[agi]["errors"].push(e);
-			})
-			.then( () => retrieveRawData(agi));
+			});
 	};
 
-	this.retrieveFormattedData = function (agi) {
-		// for plotting and for sending to R
-		return retrieveRawData(agi).variants.data
+	this.retrieveVariants = function (agi) {
+			
+		let tempData = retrieveData(agi);
+		// build nested data structure variants = { AGI: { Position { SNP_Change { data: [], counts, ecotypes}}}}
+		let formattedVariants = tempData.variants.data 
 			.reduce((data, datum) => {
 				if (datum[12] in data) {
 					if (datum[1] in data[datum[12]]) {
@@ -143,11 +169,8 @@ let varData = {};
 				};
 				return data;
 			}, {})
-
-};
-
-	this.retrieveAllFormattedData = function() {
-		return this.retrieveAllData();
+		tempData.variants = formattedVariants;
+		return tempData;
 	};
 
 }).apply(varData);

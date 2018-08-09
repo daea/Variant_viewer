@@ -14,12 +14,17 @@ var overview = {};
 	this.destination = '';
 	this.tableId = '#structureTable';
 
+	// add a gene overview to the destination table
 	this.addStructure = function(data, destination, tableId = 0) {
+		
+		// Optional custom table Id 
 		if (tableId !=0) {
 			this.tableId = '#' + tableId;
 		} else {
 			;
 		};
+
+		// If its the first gene, init the table
 		if (d3.select(this.tableId).empty() == true) {
 			
 			this.destination = '#' + destination;
@@ -36,12 +41,21 @@ var overview = {};
 		};
 	};
 
+
 	this.removeStructure = function(gene) {
+		
+		// need the base gene name for removal
 		let toRemove = '.' + gene.substring(0, gene.indexOf('.'));
+		
+		// reset the table
 		if (d3.select(this.tableId).empty() == true) {
 			this.destination.innerHTML = '';
+		
+		// there is still a gene in the table
 		} else if (d3.select(this.tableId).empty() == false) {
 			d3.selectAll(toRemove).remove()
+
+
 		} else {
 			d3.select(this.destination)
 				.append('p')
@@ -61,9 +75,6 @@ var overview = {};
 		let thead = table.append('thead').append('tr');
 		
 		thead
-			//.selectAll('th')
-			//.data(["Isoform Id", "Isoform Structure"])
-			//.enter()
 			.append('th')
 			.classed('border-bottom', true)
 			.classed('text-left', true)
@@ -80,10 +91,6 @@ var overview = {};
 			.classed('text-center', true)
 			.append('strong')	
 			.text("ISOFORM STRUCTURE")
-		
-
-			//.text(function(d) { return d; })
-		
 		return table;
 	}
 
@@ -107,7 +114,21 @@ var overview = {};
 				.append('strong')
 				.text(gene)
 			
-			let sizeGuide = geneHeader.append('td');
+			let sizeGuide = geneHeader
+				.append('td')
+				.style('padding', '10px')
+				.append('div')
+				.classed('progress', true)
+				.append('div')
+				.classed('progress-bar', true)
+				.classed('progress-bar-striped', true)
+				.classed('bg-success', true)
+				.attr('role', 'progressbar')
+				.style('width', '100%')
+				.attr('aria-valuemin', "0")
+				.attr('aria-valuemax', "100")
+				.attr('aria-valuenow', "100")
+				;
 		
 			// Iterate over the Isoforms (by mRNA)
 			data.features[0].subfeatures

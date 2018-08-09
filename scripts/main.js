@@ -102,17 +102,29 @@ function addGene(input) {
 				createListElement(input);
 
 				queryAgis.push(agi);
-					varData
-						.getStructureData(agi)
-						.then( data =>
-							overview.addStructure(data, "graphPanel")
-						);
-					varData
-						.getData(agi)
-						.then( () => varData.retrieveFormattedData(agi))
-						.then( data => console.log(data) )
-						.catch(e => console.log(e));
-						
+				varData
+					.getStructure(agi)
+					.then( data =>
+						overview.addStructure(data, "graphPanel"))
+					.catch(error => console.log(error));
+
+				d3.select()
+
+				varData
+					.getData(agi)
+					.then( () => varData.retrieveVariants(agi))
+					.then( data => console.log(data) )
+					.catch(error => {
+						if (e == SyntaxError) {
+							alert(`There was an error retrieving variants for that isoform 
+								from the PolyMorph 1001. Please submit the isoform to Polymorph1001
+								to ensure that there are variant records available.`);	
+						} else {
+							alert(`An unknown error occurred. Please contact the webmaster with your 
+								submission information.`);
+						};
+					});
+					
 				addSubmitButton();	
 
 		} else if ( queryAgis.length < 10 && input.value.length != 0) {
@@ -127,7 +139,7 @@ function addGene(input) {
 				queryAgis.push(agi);
 		
 			varData
-				.getStructureData(agi)
+				.getStructure(agi)
 				.then( data =>
 					overview.addStructure(data, "graphPanel")
 				);	
@@ -171,11 +183,22 @@ function removeGene (event) {
 
 // Append <li> elements to the parent <ul> node in the Active Genes panel
 function createListElement(input) {
-	var Agi = document.createElement("li");
-	Agi.classList.add("list-group-item", "d-flex", "justify-content-between", "align-items-center");
-	Agi.appendChild(document.createTextNode(input.value));
-	Agi.innerHTML += "<a href='#' id='" + extractId(input.value) + "' class='badge badge-pill badge-danger'>Remove</a>";
-	addedGenes.appendChild(Agi);
+
+	let currentElement = d3.select("#addedGenes")	
+		.append('li')
+		.classed('list-group-item', true)
+		.classed('d-flex', true)
+		.classed('justify-content-between', true)
+		.classed('align-items-center', true)
+		.text(input.value)
+
+	currentElement
+		.append('a')
+		.attr('href', '#')
+		.attr('id', extractId(input.value))
+		.classed('badge badge-pill badge-danger', true)
+		.text('Remove')
+
 }
 
 // Only display the Submit button after the User has added one gene
@@ -233,22 +256,9 @@ function submitAgis(event) {
 	};
 }
 
-// GET structure data for gene models
-function getGeneModels(agi) {
-	let structureXHR = new XMLHttpRequest();
-	structureXHR.onreadystatechange = function () {
-		if (this.readyState == 4 && this.status == 200) {
-			// here is where we add the plots to the graphPanel	
-			overview.addStructure(structureXHR, 'graphPanel');
-		};
-	};
-	structureXHR.open("GET", STRUCTURE_URL + agi.substr(0, agi.indexOf('.')), true);
-	structureXHR.send();	
-};
-
 // Initial Gene Model Plot
 function initSplashPanelStruct (DEFAULT_AGI) {
-	varData.getStructureData(extractId(DEFAULT_AGI))
+	varData.getStructure(extractId(DEFAULT_AGI))
 				.then( data =>
 					overview.addStructure(data, "splash", "splashStructure")
 				);
