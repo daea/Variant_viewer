@@ -43,6 +43,9 @@ window.addEventListener("load", function() {
 
 	// add initial gene structure
 	initSplashPanelStruct(DEFAULT_AGI);
+
+	d3.select("#exportJSON").on('click', () => varData.exportData('json'));
+	d3.select('#exportCSV').on('click', () => varData.exportData('csv'));
 });
 
 // Autocomplete function
@@ -92,7 +95,6 @@ function addGene(input) {
 			alert("Please enter a gene in the search box.");
 		} else if ( queryAgis.length == 0 && input.value.length != 0) {
 			// First gene, text box not empty
-
 				// First Gene, Remove the dialog box
 				addedGenes.innerHTML = '';
 				// remove the splash text
@@ -100,31 +102,9 @@ function addGene(input) {
 				document.getElementById("graphPanel").innerHTML = '';
 				// create a list node containing the description in the input box (if selected)
 				createListElement(input);
-
+				// global list to track active AGIs
 				queryAgis.push(agi);
-				varData
-					.getStructure(agi)
-					.then( data =>
-						overview.addStructure(data, "graphPanel"))
-					.catch(error => console.log(error));
-
-				d3.select()
-
-				varData
-					.getData(agi)
-					.then( () => varData.retrieveVariants(agi))
-					.then( data => console.log(data) )
-					.catch(error => {
-						if (e == SyntaxError) {
-							alert(`There was an error retrieving variants for that isoform 
-								from the PolyMorph 1001. Please submit the isoform to Polymorph1001
-								to ensure that there are variant records available.`);	
-						} else {
-							alert(`An unknown error occurred. Please contact the webmaster with your 
-								submission information.`);
-						};
-					});
-					
+				renderOverview(agi);		
 				addSubmitButton();	
 
 		} else if ( queryAgis.length < 10 && input.value.length != 0) {
@@ -137,12 +117,8 @@ function addGene(input) {
 			} else if (!genes.includes(gene)) {
 				createListElement(input);		
 				queryAgis.push(agi);
-		
-			varData
-				.getStructure(agi)
-				.then( data =>
-					overview.addStructure(data, "graphPanel")
-				);	
+				renderOverview(agi);		
+					
 			} else {
 				;
 			};
@@ -203,18 +179,39 @@ function createListElement(input) {
 
 // Only display the Submit button after the User has added one gene
 function addSubmitButton() {
-	var exists = document.getElementById('sendAgis');
-	if (typeof(exists) == "object" && exists == null) {
-		var input_panel = document.getElementById("activeGenes");
-		var submitAgis = document.createElement("button");
-		submitAgis.id = "sendAgis";
-		submitAgis.type = "submit";
-		submitAgis.classList.add("btn", "btn-secondary");
-		submitAgis.innerHTML = "Submit";
-		input_panel.appendChild(submitAgis);
+	let exists = d3.select("#sendAgis");
+	if (!exists.empty()) {
+		return ;
 	};
-}
+	let submitDest = d3.select('#activeGenes')
+		.append('div');	
 
+	submitDest
+		.append('button')
+		.attr('id', 'sendAgis')
+		.attr('type', 'submit')
+		.classed('btn', true)
+		.classed('btn-secondary', true)
+		.text("Submit");
+
+	submitDest
+		.append('div')
+		.classed('progress', true)
+		.append('div')
+		.attr('id', 'submitProgress')
+		.classed('progress-bar', true)
+		.classed('progress-bar-striped', true)
+		.classed('progress-bar-animated', true)
+		.classed('bg-warning', true)
+		.attr('role', 'progressbar')
+		.style('width', '100%')
+		.attr('aria-valuemin', "0")
+		.attr('aria-valuemax', "100")
+		.attr('aria-valuenow', "100")
+		.text('Aligning Proteins')
+		.classed('font-weight-bold', true)
+		.classed('text-dark', true);
+}
 
 // extract AGI ids from submitted AGI and format for submission to plotVariants.php
 function extractId(value) {
@@ -234,7 +231,9 @@ function extractId(value) {
 
 // Submit XHR to plotVariants.php backend script
 function submitAgis(event) {
-		if (event.target.nodeName == 'BUTTON' && event.target.id == 'sendAgis') {
+	if (event.target.nodeName == 'BUTTON' && event.target.id == 'sendAgis') {
+		d3.select('#submitProgress')
+			.style('visibility', 'visible');
 		var listedAgis = [];
 		for (var i=0; i < queryAgis.length; i++) {
 			listedAgis.push(extractId(queryAgis[i]));
@@ -242,24 +241,59 @@ function submitAgis(event) {
 		window.graphXHR.abort();
 		window.graphXHR.onreadystatechange = function () {
 			if (this.readyState == 4 && this.status == 200) {
-			//	console.log("The GET request worked.");
-				plots.renderPlots(graphXHR, 'graphPanel');
-				
+				plots.renderPlots(graphXHR, 'graphPanel');				
 			}; 
 		};
 		window.graphXHR.responseType = "json";
 		window.graphXHR.open("GET", PHP_URL + listedAgis.join(','), true);
-		window.graphXHR.send();	
+		window.graphXHR.send();
+
 	} else {
 		return ;	
-		//console.log("Can't find the submit button");
 	};
 }
 
 // Initial Gene Model Plot
 function initSplashPanelStruct (DEFAULT_AGI) {
 	varData.getStructure(extractId(DEFAULT_AGI))
-				.then( data =>
-					overview.addStructure(data, "splash", "splashStructure")
-				);
+				.then( data => overview.addStructure(data, "splash", "splashStructure"));
 };
+
+function renderOverview (agi) {
+// request the structures from the BAR and draw our structure table	
+	varData
+		.getStructure(agi)
+		.then( data => {
+			overview.addStructure(data, "graphPanel");
+			overview.changeProgress(agi, 'loading');
+		})
+		.catch(error => alert(error));
+
+	// retrieve variant data from 1001 and pfam / cdd data
+	switchInput('disable');	
+	varData
+		.getData(agi)
+		.then( (data) => {
+			if (varData.retrieveAllData()[agi].errors.length > 0) {
+				overview.changeProgress(agi, 'warning');
+			} else {
+				overview.changeProgress(agi, 'success');
+				varData.formattedData[agi] = varData.retrieveVariants(agi);
+			};
+		})
+		.catch(error => {
+			console.log(error);
+				overview.changeProgress(agi, 'error');
+				alert(`There was an error retrieving variants for that isoform from PolyMorph 1001. Please submit the isoform to Polymorph1001 to ensure that there are variant records available.`);
+			}
+		).then(() => switchInput('enable'));
+};
+
+function switchInput(status) {
+	if (status == "disable") {
+		d3.select('#agiInput').property('disabled', true);
+	} else {
+		d3.select('#agiInput').property('disabled', false);
+	};
+};
+

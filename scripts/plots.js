@@ -15,7 +15,6 @@ var plots = {};
 
 	// Get our datasources and assign them to properties
 	this.getData = function(XHR_response) {
-			
 		this.data["cddPfam"] = XHR_response.response.data[0];
 		this.data["variantMap"] = XHR_response.response.data[1];
 		this.data["frequencyData"] = XHR_response.response.data[2];

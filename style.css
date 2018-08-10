@@ -56,10 +56,19 @@ span.varView {
 	font-weight: bold;
 }
 
+td > h6 {
+	text-align: left;
+	margin-left: 4px;
+}
+
+tbody > tr > td {
+	padding-left: 8px;
+}
+
 .geneHeader {
 	padding-top: 6px;
 	padding-bottom: 0;
-	text-align: left;
+	text-align: center;
 }
 
 .table-hover > tr {
@@ -67,10 +76,19 @@ span.varView {
 	border-radius:5px;
 }
 
-
- {
-
+#activeGenes > div > .progress {
+	display: inline-flex;
+	float: right;
+	width: 65%;
+	height: 34px;
+	margin-top: 7px;
+	visibility: hidden;
 }
 
-.
+#sendAgis {
+	display: inline-block;
+}
 
+#exportJSON, #exportCSV {
+	display: inline-flex;
+}

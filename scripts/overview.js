@@ -122,13 +122,13 @@ var overview = {};
 				.append('div')
 				.classed('progress-bar', true)
 				.classed('progress-bar-striped', true)
+				.classed('progress-bar-animated', true)
 				.classed('bg-success', true)
 				.attr('role', 'progressbar')
 				.style('width', '100%')
 				.attr('aria-valuemin', "0")
 				.attr('aria-valuemax', "100")
-				.attr('aria-valuenow', "100")
-				;
+				.attr('aria-valuenow', "100");
 		
 			// Iterate over the Isoforms (by mRNA)
 			data.features[0].subfeatures
@@ -147,7 +147,8 @@ var overview = {};
 				let row = geneSection.append('tr');
 				row.append('td')
 					.text(isoform.uniqueID)
-					.style("width", '120px');
+					.style("width", '120px')
+					.style("-left", '8px')
 				let structure = row.append('td');
 				let container = structure.append('div');
 					
@@ -275,5 +276,45 @@ var overview = {};
 				.text('An error occurred while rendering the plot');
 		};
 	};
+
+
+	this.changeProgress = function(gene, status) {
+		
+		geneToChange = '.' + gene.substring(0, gene.indexOf('.'));
+		// what input format is gene?
+		let changeTo;
+		let statusText;
+
+		let progressBar = d3.select(geneToChange).select('.progress-bar');
+		progressBar.attr('class', 'progress-bar')
+			.classed("text-dark", true)
+			.classed("font-weight-bold", true);
+
+		if (status == 'loading') {
+			changeTo = 'bg-warning';
+			statusText = "Currently retrieving variants and domain information";
+		
+			progressBar
+				.classed('progress-bar-striped', true)
+				.classed('progress-bar-animated', true);
+
+		} else if (status == 'error') {
+			changeTo = 'bg-danger';
+			statusText = "There was an error loading the protein sequence or variant data for this gene";
+		} else if (status == 'success') {
+			changeTo = 'bg-success';
+			statusText = "All data succesfully retrieved";
+		} else {
+			changeTo = 'bg-warning';
+			statusText = "Pfam or CDD did not return domains for your request";
+		};
+
+		progressBar
+			.classed(changeTo, true)
+			.text(statusText);
+
+		return progressBar;
+	};
+
 }).apply(overview);
 
