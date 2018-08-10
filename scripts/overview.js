@@ -161,6 +161,7 @@ var overview = {};
 								.range([0, w]);
 
 				let plot = container.append('svg')
+					.classed('structure' + isoform.uniqueID, true)
 					.attr('height', h)
 					.attr('width', w)
 				
@@ -211,6 +212,7 @@ var overview = {};
 					return layerOrder.indexOf(a.type) - layerOrder.indexOf(b.type);
 				});
 				
+				//Convenience function to avoid repetition	
 				let renderPlotFeature = function (feat, colorIndex, heightAdjust) {
 					
 					// Colours of features
@@ -277,6 +279,13 @@ var overview = {};
 		};
 	};
 
+	this.renderVariants = function(variantData, destinationTable) {
+		let table = d3.select('#' + destinationTable);
+
+
+
+
+	};
 
 	this.changeProgress = function(gene, status) {
 		
