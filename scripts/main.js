@@ -264,7 +264,7 @@ function renderOverview (agi) {
 	varData
 		.getStructure(agi)
 		.then( data => {
-			overview.addStructure(data, "graphPanel");
+			overview.addStructure(data, "graphPanel", "graphPanelStructure");
 			overview.changeProgress(agi, 'loading');
 		})
 		.catch(error => alert(error));
@@ -281,6 +281,7 @@ function renderOverview (agi) {
 				varData.formattedData[agi] = varData.retrieveVariants(agi);
 			};
 		})
+		.then( () => overview.renderVariants(varData.retrieveFormattedData(agi), overview.tableId))
 		.catch(error => {
 			console.log(error);
 				overview.changeProgress(agi, 'error');

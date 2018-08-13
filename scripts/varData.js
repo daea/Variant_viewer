@@ -41,6 +41,10 @@ let varData = {};
 		return rawData;
 	};
 
+	this.retrieveFormattedData = function(agi) {
+		return this.formattedData[agi];
+	};
+
 	this.retrieveAllFormattedData = function() {
 		return this.formattedData;
 	};

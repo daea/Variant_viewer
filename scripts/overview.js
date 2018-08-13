@@ -153,17 +153,17 @@ var overview = {};
 				let container = structure.append('div');
 					
 				let w = parseInt(container.style('width'));
-				let h = 20;
+				let h = 40;
 
-				// Scale for converting genomic coordinates to plot values
 				let xscale = d3.scaleLinear()
 								.domain([geneStart, geneEnd])
 								.range([0, w]);
 
 				let plot = container.append('svg')
-					.classed('structure' + isoform.uniqueID, true)
+					.classed('structure' + isoform.uniqueID.replace('.','_'), true)
 					.attr('height', h)
 					.attr('width', w)
+					.style('margin-bottom', 0);
 				
 				let tooltip = d3.select("body")
 					.append('div')
@@ -183,7 +183,7 @@ var overview = {};
 					.attr('x', function(d) {
 						return xscale(d[0]);
 					})
-					.attr('y', (h / 2) + ((h/10)/2) )
+					.attr('y', (h / 2) + ((h/10)) )
 					.attr('width', function(d) {
 						return xscale(d[1]) - xscale(d[0]);
 					})
@@ -202,37 +202,30 @@ var overview = {};
 						return tooltip.style('visibility', 'hidden');});
 				
 				// Sort the features
-				let layerOrder = [	"exon",
-									"CDS",
-									"five_prime_UTR", 
-									"three_prime_UTR" 
-
-				];
+				let layerOrder = ["exon", "CDS", "five_prime_UTR", "three_prime_UTR"];
 				isoform.subfeatures.sort(function (a,b) {
 					return layerOrder.indexOf(a.type) - layerOrder.indexOf(b.type);
 				});
 				
-				//Convenience function to avoid repetition	
 				let renderPlotFeature = function (feat, colorIndex, heightAdjust) {
 					
 					// Colours of features
 					let colorPalette = [ 
 						"#388659",  // Darkish green
-						"#427AA1", // Darkish blue
+						"#427AA1",  // Darkish blue
 						"#52AA5E",  // Brighter green
-						"#3AAED8", // Lighter muted blue
-						"#2BD9FE", // Light blue
+						"#3AAED8",  // Lighter muted blue
+						"#2BD9FE",  // Light blue
 					];
-
 
 					let featureLength = xscale(feat.end) - xscale(feat.start);	
 				
 					plot
 						.append('rect')
 						.attr('x', xscale(feat.start))
-						.attr('y', h / 4)
+						.attr('y', (h / 4) + (h/8))
 						.attr('width', featureLength)
-						.attr('height', h/ heightAdjust)
+						.attr('height', h / heightAdjust)
 						.attr('fill', colorPalette[colorIndex])
 						.on('mouseover', () => {
 							tooltip.style('visibility', 'visible')
@@ -249,25 +242,16 @@ var overview = {};
 							tooltip.style('visibility', 'hidden');
 						});
 				};
-			
 				for (const feat of isoform.subfeatures) {
-					
 					if (feat.type == "three_prime_UTR" || feat.type == "five_prime_UTR") {
-						 
-						renderPlotFeature(feat, 3, 3);
-
+						renderPlotFeature(feat, 3, 4);
 					} else if (feat.type == "exon") {
-					
-						renderPlotFeature(feat, 2, 1);
-
+						renderPlotFeature(feat, 2, 2);
 					} else if (feat.type == "CDS") {
-		
-						renderPlotFeature(feat, 1, 1);
-
+						renderPlotFeature(feat, 1, 2);
 					} else {
 						;
 					};
-				
 				};
 			};
 
@@ -279,11 +263,141 @@ var overview = {};
 		};
 	};
 
+	// Input is formatted data table 
 	this.renderVariants = function(variantData, destinationTable) {
-		let table = d3.select('#' + destinationTable);
+		let tooltip = d3.select("body")
+					.append('div')
+					.style('position', 'absolute')
+					.style('z-index', "10")
+					.style("visibility", "hidden")
+					.style("background-color", "orange")
+					.style("padding", "4px")
+					.style("border-radius", "4px")
+					.style("font-size", "12px");
+
+		let table = d3.select(destinationTable);
+		let start = variantData.structures.features[0].start;
+		let end   = variantData.structures.features[0].end;
+
+		Object.entries(variantData.variants).forEach( ([agi, positions]) => {
+			Object.entries(positions).forEach( ([position, variants]) => {
+				Object.entries(variants).forEach( ([variant, fields]) => {		
+					transcriptID = fields.data[12];
+					console.log(fields.data[4], fields.data[3]);
+
+					let destSVG = table.select('.structure' + transcriptID.replace('.','_'));
+					// Continue here
+
+					if (destSVG.empty() === true || destSVG.style('width') === null) {
+						;
+					} else {
+						let xscale = d3.scaleLinear()
+							.domain([start, end])
+							.range([0, parseInt(destSVG.style('width'))]);
+						let h = parseInt(destSVG.style('height'));
+						console.log(h);
+						if (h < 40) {
+							destSVG.attr('height', 40);
+							h=40;
+						};
+						let adjust;
+						if (position % 2 == 0) {
+							adjust = 3;
+						} else {
+							adjust = -3;
+						};
+
+						if (fields.data[4] === "LOW" || fields.data[4] === "MODIFIER") {
+							let pointColor;
+							if (fields.count < 12) {
+								pointColor = '#FFFFFF';
+							} else if (fields.count < 60) {
+								pointColor = '#C8C8C8';
+							} else if (fields.count < 567) {
+								pointColor = '#686868';
+							} else if (fields.count < 1135) {
+								pointColor = '#000000';
+							} else {
+								pointColor = '#FFFFFF';
+							};
+							
+							destSVG
+								.append('circle')
+								.attr('cx', xscale(position))
+								.attr('cy', h - (h/4) + 5 + adjust)
+								.attr('fill', pointColor)
+								.attr('stroke', 'black')
+								.attr('stroke-width', 1)
+								.attr('r', 2)
+								.on('mouseover', () => {
+									tooltip.style('visibility', 'visible')
+									.html("<strong>Locus:</strong> " + fields.data[1] + 
+										"<br><strong>Type:</strong> " + fields.data[3] +
+										"<br><strong>Severity: </strong>" + fields.data[4] +
+										"<br><strong>Change: </strong>" + fields.data[5] +
+										"<br><strong>Codon: </strong>" + fields.data[6] +
+										"<br><strong>DND/Protein Variant: </strong>" + fields.data[7] +
+										"<br><strong>Ecotypes: </strong>" + fields.count)
+								})
+								.on('mousemove', () => {
+									 tooltip
+										.style('top', (d3.event.pageY-10) +"px")
+										.style("left", (d3.event.pageX+10)+"px");
+								})
+								.on('mouseout',() => {
+									tooltip.style('visibility', 'hidden');
+								});
+
+						} else if (fields.data[4] === "MODERATE" || fields.data[4] === "HIGH") {
+							let pointColor;
+							if (fields.count < 12) {
+								pointColor = '#FFFFFF';
+							} else if (fields.count < 60) {
+								pointColor = '#FFCCCC';
+							} else if (fields.count < 567) {
+								pointColor = '#FF5C5C';
+							} else if (fields.count < 1135) {
+								pointColor = '#FF0000';
+							} else {
+								pointColor = '#FFFFFF';
+							};
+
+							destSVG
+								.append('circle')
+								.attr('cx', xscale(position))
+								.attr('cy', h - (3*(h/4) - 5 + adjust) )
+								.attr('fill', pointColor)
+								.attr('stroke', 'red')
+								.attr('stroke-width', 1)
+								.attr('r', 2)
+								.on('mouseover', () => {
+									tooltip.style('visibility', 'visible')
+									.html("<strong>Locus:</strong> " + fields.data[1] + 
+										"<br><strong>Type:</strong> " + fields.data[3] +
+										"<br><strong>Severity: </strong>" + fields.data[4] +
+										"<br><strong>Change: </strong>" + fields.data[5] +
+										"<br><strong>Codon: </strong>" + fields.data[6] +
+										"<br><strong>DND/Protein Variant: </strong>" + fields.data[7] +
+										"<br><strong>Ecotypes: </strong>" + fields.count)
+								})
+								.on('mousemove', () => {
+									 tooltip
+										.style('top', (d3.event.pageY-10) +"px")
+										.style("left", (d3.event.pageX+10)+"px");
+								})
+								.on('mouseout',() => {
+									tooltip.style('visibility', 'hidden');
+								});
 
 
 
+
+								;
+							};
+					};
+				});
+			});
+		});
 
 	};
 
