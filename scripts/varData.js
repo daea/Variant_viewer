@@ -13,12 +13,15 @@ let varData = {};
 	// Internal URLS and 1001g URLS
 	const STRUCTURE_URL = "http://bar.utoronto.ca/webservices/bar_araport/gene_structure_by_locus.php?locus=";
 	const VARIANT_BASE_URL = "http://tools.1001genomes.org/api/v1.1/effects.json?type=snps;accs=all;gid=";
-
 	const VARIANT_END_URL  = ";effect=missense_variant";
+
 	const PROT_URL = "http://bar.utoronto.ca/webservices/bar_araport/get_protein_sequence_by_identifier.php?locus=";
 	
 	const CDD_URL  = "http://bar.utoronto.ca/eplant/cgi-bin/CDDannot.cgi";
 	const PFAM_URL = "http://bar.utoronto.ca/eplant/cgi-bin/PfamAnnot.cgi";
+
+	const ALIGNMENT_URL = "scripts/plotVariants.php?locus=";
+	const ALIGNMENT_URL_TEST = "scripts/plotVariantsTest.php?locus=";
 
 	let rawData = {};
 	this.formattedData = {};
@@ -198,6 +201,21 @@ let varData = {};
 			}, {});
 		tempData.variants = formattedVariants;
 		return tempData;
+	};
+
+	this.alignProteins = function(queryAgis) {
+			
+		fetch(ALIGNMENT_URL_TEST + queryAgis.join(','))
+			.then( (response) => {
+				if (response.ok) {
+					return response.json();
+				};
+				throw new Error("Error retrieving CDD data.");
+			})
+			.then( (data) => console.log(data))
+			.catch( (error) => console.log(error));
+
+		return true;
 	};
 
 	this.flattenFormattedData = function() {
